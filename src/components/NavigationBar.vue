@@ -101,7 +101,7 @@ const navigateToV2Full = () => {
         }"
           class="flex items-center gap-2 px-5 py-2 rounded-full font-semibold text-sm active:scale-95 transition-all duration-200 cursor-pointer">
           <i class="fas fa-circle-question"></i>
-          <span class="max-md:hidden">{{ t('v2test') }}</span>
+          <span class="max-md:hidden">{{ t('nav.v2test') }}</span>
         </button>
         <button @click="navigateToV2Full" :class="{
           'bg-[#007AFF] text-white shadow-sm': route.path === '/v2full',
