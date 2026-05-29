@@ -7,6 +7,7 @@ import { useScoreStore } from '@/store/scoreStore'
 import { useI18n } from 'vue-i18n'
 import { useModal } from '@composables/useModal'
 import SakuraImportTab from '@/components/guide/SakuraImportTab.vue'
+import KinokoImportTab from '@/components/guide/KinokoImportTab.vue'
 import DonderSyncTab from '@/components/guide/DonderSyncTab.vue'
 import ManualImportTab from '@/components/guide/ManualImportTab.vue'
 
@@ -16,6 +17,7 @@ const { showModal } = useModal()
 
 // Tab 配置 — 调整顺序只需交换数组元素
 const tabDefs = [
+  { key: 'kinoko', icon: 'fa-key', labelKey: 'guide.kinokoTitle' as const, component: KinokoImportTab },
   { key: 'sakura', icon: 'fa-robot', labelKey: 'guide.sakuraTitle' as const, component: SakuraImportTab },
   { key: 'sync', icon: 'fa-arrows-rotate', labelKey: 'guide.syncTitle' as const, component: DonderSyncTab },
   { key: 'manual', icon: 'fa-file-import', labelKey: 'guide.manualTitle' as const, component: ManualImportTab },
