@@ -126,10 +126,10 @@ function calcLnRating(rating: number, dimensionValue: number, accuracy: number):
 
   if (dimensionValue <= rating) {
     // 维度值不超过rating时，使用对数插值
-    return base + MIN(accuracy / dimensionValue, 1) * Math.log(upper - base);
+    return base + MIN(accuracy / dimensionValue, 1) * Math.log(upper - base + 1);
   } else {
     // 维度值超过rating时，rt1用对数插值，rt2用几何平均，按accuracy做加权平均
-    const rt1 = base + MIN(accuracy / dimensionValue, 1) * Math.log(upper - base);
+    const rt1 = base + MIN(accuracy / dimensionValue, 1) * Math.log(upper - base + 1);
     const rt2 = SQRT(base * upper);
 
     let w1: number;
