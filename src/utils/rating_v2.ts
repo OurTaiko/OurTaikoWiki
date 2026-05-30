@@ -113,6 +113,43 @@ function calcDimensionRating(rating: number, dimensionValue: number): number {
 }
 
 /**
+ * 计算单个维度的rating（使用对数插值）
+ * 基于min/max分段 + ln插值 + 几何平均过渡的混合算法
+ * @param rating 综合rating值
+ * @param dimensionValue 维度原始值
+ * @param accuracy 准确率换算后的accuracy值
+ * @returns 维度rating
+ */
+function calcLnRating(rating: number, dimensionValue: number, accuracy: number): number {
+  const base = MIN(rating, dimensionValue);
+  const upper = MAX(rating, dimensionValue);
+
+  if (dimensionValue <= rating) {
+    // 维度值不超过rating时，使用对数插值
+    return base + MIN(accuracy / dimensionValue, 1) * Math.log(upper - base);
+  } else {
+    // 维度值超过rating时，rt1用对数插值，rt2用几何平均，按accuracy做加权平均
+    const rt1 = base + MIN(accuracy / dimensionValue, 1) * Math.log(upper - base);
+    const rt2 = SQRT(base * upper);
+
+    let w1: number;
+    let w2: number;
+    if (accuracy <= rating) {
+      w1 = 1;
+      w2 = 0;
+    } else if (accuracy >= dimensionValue) {
+      w1 = 0;
+      w2 = 1;
+    } else {
+      w1 = (accuracy - rating) / (dimensionValue - rating);
+      w2 = (dimensionValue - accuracy) / (dimensionValue - rating);
+    }
+
+    return rt1 * w1 + rt2 * w2;
+  }
+}
+
+/**
  * 主计算函数：计算太鼓达人评分
  * 按照用户指定的计算步骤，基于玩家成绩计算7个维度的rating值
  * 
