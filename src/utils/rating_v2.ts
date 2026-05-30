@@ -211,12 +211,19 @@ export function calculateTaikoRating(
   }
 
   // 计算各维度rating
+  /**
   const stamina_rt = calcDimensionRating(rating, songData.stamina);
   const handspeed_rt = calcDimensionRating(rating, songData.handspeed);
   const accuracy_rt = calcDimensionRating(rating, accuracy);
+  */
 
+  const stamina_rt = calcLnRating(rating, songData.stamina, accuracy);
+  const handspeed_rt = calcLnRating(rating, songData.handspeed, accuracy);
+  const accuracy_rt = calcLnRating(rating, accuracy, accuracy);
+  
   // 计算爆发rating
-  const burst_rt_base = calcDimensionRating(rating, songData.burst);
+  // const burst_rt_base = calcDimensionRating(rating, songData.burst);
+  const burst_rt_base = calcLnRating(rating, songData.burst, accuracy);
   // const burst_hs_factor = songData.handspeed > 0 ? MIN(rating / songData.handspeed, 1) : 1;
   // const burst_hs_factor = songData.handspeed > 0 ? MIN(rating / songData.handspeed / MIN(rt_100 / songData.handspeed , 1) , 1) : 1;
   const burst_hs_factor = songData.handspeed > 0 ? MIN(accuracy / songData.handspeed, 1) : 1;
@@ -224,7 +231,8 @@ export function calculateTaikoRating(
   const burst_rt = burst_rt_base * burst_hs_factor > handspeed_rt ? handspeed_rt + MIN(MAX(accuracy - songData.handspeed, 0) / (songData.burst - songData.handspeed), 1) * (burst_rt_base * burst_hs_factor - handspeed_rt) : burst_rt_base * burst_hs_factor;
 
   // 计算复合rating
-  const complex_rt_base = calcDimensionRating(rating, songData.complex);
+  // const complex_rt_base = calcDimensionRating(rating, songData.complex);
+  const complex_rt_base = calcLnRating(rating, songData.complex, accuracy);
   const complex_penalty = (5000 / 9) * POWER(MAX(0.03 - input.bad_per, 0), 2) + 0.5;
   const complex_rt = complex_rt_base * complex_penalty;
 
@@ -232,7 +240,8 @@ export function calculateTaikoRating(
   // const burst_rt_100 = calcDimensionRating(rt_100, songData.burst);
 
   // 计算节奏rating
-  const rhythm_rt_base = calcDimensionRating(rating, songData.rhythm);
+  // const rhythm_rt_base = calcDimensionRating(rating, songData.rhythm);
+  const rhythm_rt_base = calcLnRating(rating, songData.rhythm, accuracy);
   // const rhythm_burst_factor = songData.burst > 0 ? MIN(burst_rt / songData.burst, 1) : 1;
   // const rhythm_burst_factor = songData.burst > 0 ? MIN(burst_rt / songData.burst / MIN(burst_rt_100 / songData.burst , 1) , 1) : 1;
   const rhythm_burst_factor = 1;
