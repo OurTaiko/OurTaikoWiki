@@ -221,7 +221,7 @@ export function calculateTaikoRating(
   const handspeed_rt = calcLnRating(rating, songData.handspeed, accuracy);
   */
   // const accuracy_rt = calcLnRating(rating, accuracy, accuracy);
-  const stamina_rt = calcSingleRating(accuracy, rating);
+  const accuracy_rt = calcSingleRating(accuracy, rating);
 
   const stamina_rt = calcSingleRating(songData.stamina, accuracy);
   const handspeed_rt = calcSingleRating(songData.handspeed, accuracy);
