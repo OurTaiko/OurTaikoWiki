@@ -1,62 +1,38 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, watch, ref, computed } from 'vue'
+import { onMounted, onUnmounted, watch, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Chart, RadarController, RadialLinearScale, PointElement, LineElement, Filler, Tooltip, Legend } from 'chart.js'
 import ChartDataLabels from 'chartjs-plugin-datalabels'
 
 interface Props {
-  data: {
-    daigouryoku: number
-    stamina: number
-    speed: number
-    accuracy: number
-    rhythm: number
-    complex: number
-  }
+  labels: string[]
+  values: number[]
 }
 
 const props = defineProps<Props>()
-const { t, locale } = useI18n()
+const { locale } = useI18n()
 const canvasRef = ref<HTMLCanvasElement | null>(null)
 let chartInstance: Chart | null = null
 
 // 注册Chart.js插件
 Chart.register(RadarController, RadialLinearScale, PointElement, LineElement, Filler, Tooltip, Legend, ChartDataLabels)
 
-const chartLabels = computed(() => [
-  t('radar.daigouryoku'),
-  t('radar.stamina'),
-  t('radar.speed'),
-  t('radar.accuracy'),
-  t('radar.rhythm'),
-  t('radar.complex')
-])
-
 const createChart = () => {
   if (!canvasRef.value) return
-  
+
   // 销毁旧实例
   if (chartInstance) {
     chartInstance.destroy()
   }
 
-  const stats = [
-    props.data.daigouryoku,
-    props.data.stamina,
-    props.data.speed,
-    props.data.accuracy,
-    props.data.rhythm,
-    props.data.complex
-  ]
-  const minVal = Math.min(...stats) - 1
+  const minVal = Math.min(...props.values) - 1
 
   chartInstance = new Chart(canvasRef.value, {
     type: 'radar',
     data: {
-      labels: chartLabels.value,
+      labels: props.labels,
       datasets: [{
-        label: t('radar.value'),
-        data: stats,
+        data: props.values,
         backgroundColor: 'rgba(233, 30, 99, 0.2)',
         borderColor: 'rgba(233, 30, 99, 1)',
         borderWidth: 2,
@@ -114,7 +90,7 @@ onMounted(() => {
   createChart()
 })
 
-watch([() => props.data, locale], () => {
+watch([() => props.values, () => props.labels, locale], () => {
   createChart()
 }, { deep: true })
 

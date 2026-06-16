@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue'
 import { calculateTaikoRating, type SongData, type CalculationInput } from '@utils/rating_v2'
 import { calcY, calcSingleRating } from '@utils/calculator'
+import RadarChart from '@components/RadarChart.vue'
 
 // --- Difficulty string → number mapping ---
 const DIFFICULTY_MAP: Record<string, number> = {
@@ -306,6 +307,15 @@ const top20Summary = computed(() => {
   }))
 })
 
+// --- Radar chart ---
+const RADAR_DIM_KEYS = ['stamina_rt', 'handspeed_rt', 'burst_rt', 'accuracy_rt', 'rhythm_rt', 'complex_rt'] as const
+const RADAR_DIM_LABELS: string[] = ['体力', '手速', '爆发', '精度', '节奏', '复合']
+
+const radarValues = computed(() => {
+  if (entries.value.length === 0) return [0, 0, 0, 0, 0, 0]
+  return RADAR_DIM_KEYS.map(k => top20WeightedAvg(entries.value, k))
+})
+
 // --- Initialize ---
 loadCSV().then(() => {
   calcAllPerfect()
@@ -336,6 +346,11 @@ loadCSV().then(() => {
             <div class="mt-0.5 text-[#8E8E93] text-[10px]">max {{ d.max.toFixed(2) }} / {{ d.count }}首</div>
           </div>
         </div>
+      </div>
+
+      <!-- Radar Chart -->
+      <div v-if="entries.length > 0" class="mb-8 w-full max-w-[700px] h-[450px] mx-auto">
+        <RadarChart :labels="RADAR_DIM_LABELS" :values="radarValues" />
       </div>
 
       <!-- Full table -->

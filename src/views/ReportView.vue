@@ -68,6 +68,25 @@ const radarDimensionLabel = (key: 'daigouryoku' | 'stamina' | 'speed' | 'accurac
 	return key === 'accuracy_power' ? t('radar.accuracy') : t(`radar.${key}`)
 }
 
+// V1 radar chart: 大歌力, 体力, 高速力, 精度力, 节奏, 复合
+const radarLabels = computed(() => [
+  t('radar.daigouryoku'),
+  t('radar.stamina'),
+  t('radar.speed'),
+  t('radar.accuracy'),
+  t('radar.rhythm'),
+  t('radar.complex')
+])
+
+const radarValues = computed(() => [
+  radarData.value.daigouryoku,
+  radarData.value.stamina,
+  radarData.value.speed,
+  radarData.value.accuracy,
+  radarData.value.rhythm,
+  radarData.value.complex
+])
+
 const radarCurrentValue = (key: 'daigouryoku' | 'stamina' | 'speed' | 'accuracy_power' | 'rhythm' | 'complex') => {
     const value = radarData.value
     if (!value) return 0
@@ -261,7 +280,7 @@ async function saveElementAsImage(element: HTMLElement | null, fileName: string)
                     </div>
 
                     <div class="w-full max-w-[700px] h-[450px]">
-                        <RadarChart :data="radarData" />
+                        <RadarChart :labels="radarLabels" :values="radarValues" />
                     </div>
 
                     <!-- Changed songs list -->
