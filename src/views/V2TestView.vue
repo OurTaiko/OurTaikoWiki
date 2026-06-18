@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import { calculateTaikoRating, type SongData, type CalculationInput } from '@utils/rating_v2'
+import { calculateTaikoRating, calcFullScoreReference, compensateV2, WEIGHTS_B, type SongData, type CalculationInput, type FullScoreRef } from '@utils/rating_v2'
 import { parsePastedScores, calcY, calcSingleRating } from '@utils/calculator'
 import type { UserScore } from '@/types'
 import RadarChart from '@components/RadarChart.vue'
@@ -24,6 +24,7 @@ const calculating = ref(false)
 const calcError = ref('')
 const entries = ref<Entry[]>([])
 const dataSource = ref<'localStorage' | 'input' | 'none'>('none')
+const fullScoreRefs = ref<Record<string, FullScoreRef> | null>(null)
 
 type Entry = {
   title: string
@@ -361,6 +362,19 @@ function top20WeightedAvg(list: Entry[], key: DimKey): number {
   return wSum > 0 ? sum / wSum : 0
 }
 
+// B-weight 加权平均：位置1-20权重=20-1
+function top20WeightedAvgB(list: Entry[], key: DimKey): number {
+  const top = getTop20(list, key)
+  if (top.length === 0) return 0
+  let wSum = 0, sum = 0
+  for (let i = 0; i < top.length; i++) {
+    const w = WEIGHTS_B[i]
+    sum += top[i][key] * w
+    wSum += w
+  }
+  return wSum > 0 ? sum / wSum : 0
+}
+
 function top20Max(list: Entry[], key: DimKey): number {
   const top = getTop20(list, key)
   return top.length > 0 ? top[0][key] : 0
@@ -368,13 +382,47 @@ function top20Max(list: Entry[], key: DimKey): number {
 
 const top20Summary = computed(() => {
   if (entries.value.length === 0) return null
-  return DIM_KEYS.map(k => ({
-    key: k,
-    label: DIM_LABELS[k],
-    avg: top20WeightedAvg(entries.value, k),
-    max: top20Max(entries.value, k),
-    count: Math.min(entries.value.length, 20),
-  }))
+  const refs = fullScoreRefs.value
+  return DIM_KEYS.map(k => {
+    const playerA = top20WeightedAvg(entries.value, k)
+    const playerB = top20WeightedAvgB(entries.value, k)
+    const max = top20Max(entries.value, k)
+    const count = Math.min(entries.value.length, 20)
+
+    let compensated = playerA
+    let per = 0
+    let threshold = 0
+    let fullB = 0
+    let fullA = 0
+    let isCompensated = false
+
+    if (refs && refs[k]) {
+      const r = refs[k]
+      threshold = r.threshold
+      fullA = r.fullA
+      fullB = r.fullB
+      if (playerB >= threshold) {
+        isCompensated = true
+        per = (playerB - threshold) / (fullB - threshold)
+        compensated = playerA + per * (15.5 - fullA)
+      }
+    }
+
+    return {
+      key: k,
+      label: DIM_LABELS[k],
+      avg: playerA,
+      compensated,
+      max,
+      count,
+      isCompensated,
+      playerB,
+      per,
+      threshold,
+      fullA,
+      fullB,
+    }
+  })
 })
 
 // --- Radar chart ---
@@ -382,47 +430,85 @@ const RADAR_DIM_KEYS = ['stamina_rt', 'handspeed_rt', 'burst_rt', 'accuracy_rt',
 const RADAR_DIM_LABELS: string[] = ['体力', '手速', '爆发', '精度', '节奏', '复合']
 
 const radarValues = computed(() => {
-  if (entries.value.length === 0) return [0, 0, 0, 0, 0, 0]
-  return RADAR_DIM_KEYS.map(k => top20WeightedAvg(entries.value, k))
+  if (entries.value.length === 0 || !top20Summary.value) return [0, 0, 0, 0, 0, 0]
+  const summaryMap = new Map(top20Summary.value.map(s => [s.key, s]))
+  return RADAR_DIM_KEYS.map(k => {
+    const s = summaryMap.get(k)
+    return s ? s.compensated : 0
+  })
 })
 function logTop20Detail() {
   if (entries.value.length === 0) return
   console.group('%cRating V2 — Top 20 详细日志', 'font-size:14px;font-weight:bold;color:#007AFF')
 
+  const refs = fullScoreRefs.value
+
   for (const key of DIM_KEYS) {
     const top = getTop20(entries.value, key)
-    let wSum = 0, sum = 0
-    const rows: Array<{ rank: number; title: string; value: number; weight: number; contribution: number }> = []
+    let wSumA = 0, sumA = 0
+    let wSumB = 0, sumB = 0
+    const rows: Array<{ rank: number; title: string; value: number; weightA: number; weightB: number; contribA: number; contribB: number }> = []
 
     for (let i = 0; i < top.length; i++) {
-      const w = TOP20_WEIGHTS[i]
+      const wA = TOP20_WEIGHTS[i]
+      const wB = WEIGHTS_B[i] ?? 0
       const val = top[i][key]
-      sum += val * w
-      wSum += w
+      sumA += val * wA
+      wSumA += wA
+      sumB += val * wB
+      wSumB += wB
       rows.push({
         rank: i + 1,
         title: top[i].title,
         value: val,
-        weight: w,
-        contribution: val * w,
+        weightA: wA,
+        weightB: wB,
+        contribA: val * wA,
+        contribB: val * wB,
       })
     }
 
+    const playerA = wSumA > 0 ? sumA / wSumA : 0
+    const playerB = wSumB > 0 ? sumB / wSumB : 0
+
+    let compensated = playerA
+    let compInfo = ''
+    if (refs && refs[key]) {
+      const r = refs[key]
+      if (playerB >= r.threshold) {
+        const per = (playerB - r.threshold) / (r.fullB - r.threshold)
+        compensated = playerA + per * (15.5 - r.fullA)
+        compInfo = ` | 补偿后=%c${compensated.toFixed(4)}%c (阈值=${r.threshold.toFixed(2)}, per=${(per*100).toFixed(1)}%)`
+      } else {
+        compInfo = ` | 未触发补偿 (B=${playerB.toFixed(4)} < 阈值=${r.threshold.toFixed(2)})`
+      }
+    }
+
     console.groupCollapsed(
-      `%c${DIM_LABELS[key]}%c 加权平均 = %c${(sum / wSum).toFixed(4)}%c  (max ${rows[0]?.value.toFixed(2) ?? '-'}, ${top.length}首)`,
+      `%c${DIM_LABELS[key]}%c A=%c${playerA.toFixed(4)}%c B=%c${playerB.toFixed(4)}${compInfo}`,
       'font-weight:bold;color:#1D1D1F',
       '',
       'font-weight:bold;color:#007AFF',
       '',
+      'font-weight:bold;color:#FF9500',
+      ...(compInfo.includes('补偿后') ? ['', 'font-weight:bold;color:#34C759', ''] : ['']),
     )
     console.table(rows.map(r => ({
       '#': r.rank,
       '曲目': r.title,
       '值': r.value.toFixed(4),
-      '权重': r.weight,
-      '贡献': r.contribution.toFixed(4),
+      '权重A': r.weightA,
+      '贡献A': r.contribA.toFixed(4),
+      '权重B': r.weightB,
+      '贡献B': r.contribB.toFixed(4),
     })))
-    console.log(`权总和: ${wSum}, 加权和: ${sum.toFixed(4)}, 加权平均: ${(sum / wSum).toFixed(4)}`)
+    console.log(`A权总和: ${wSumA}, A加权和: ${sumA.toFixed(4)}, A平均: ${playerA.toFixed(4)}`)
+    console.log(`B权总和: ${wSumB}, B加权和: ${sumB.toFixed(4)}, B平均: ${playerB.toFixed(4)}`)
+    if (refs && refs[key]) {
+      const r = refs[key]
+      console.log(`满分参考: 阈值(第40位)=${r.threshold.toFixed(4)}, 满分A=${r.fullA.toFixed(4)}, 满分B=${r.fullB.toFixed(4)}`)
+    }
+    console.log(`补偿后: ${compensated.toFixed(4)}`)
     console.groupEnd()
   }
 
@@ -434,6 +520,10 @@ watch(entries, () => {
 })
 // --- Initialize ---
 loadCSV().then(() => {
+  // 计算全满分参考数据（供补偿机制使用）
+  if (songsDB.value.length > 0) {
+    fullScoreRefs.value = calcFullScoreReference(songsDB.value)
+  }
   const stored = localStorage.getItem('taikoScoreData')
   if (stored) {
     const { entries: res, error: err } = calcFromRaw(stored)
@@ -489,14 +579,39 @@ loadCSV().then(() => {
     <div v-if="entries.length > 0">
       <!-- Top 20 Summary -->
       <div v-if="top20Summary" class="mb-8">
-        <h2 class="mb-4 font-bold text-[#1D1D1F] text-lg">Top 20 加权平均 (权重: 1-10位=1-10, 11-20位=10-1)</h2>
+        <h2 class="mb-4 font-bold text-[#1D1D1F] text-lg">
+          Top 20 加权平均
+          <span v-if="fullScoreRefs" class="ml-2 font-normal text-[#34C759] text-xs">补偿机制已启用</span>
+          <span v-else class="ml-2 font-normal text-[#FF9500] text-xs">补偿参考数据未加载</span>
+        </h2>
         <div class="gap-3 grid grid-cols-2 md:grid-cols-4">
           <div v-for="d in top20Summary" :key="d.key"
-            class="bg-black/5 p-4 border border-black/5 rounded-[20px] text-center">
+            class="p-4 border rounded-[20px] text-center"
+            :class="d.isCompensated ? 'bg-[#34C759]/5 border-[#34C759]/20' : 'bg-black/5 border-black/5'">
             <div class="font-semibold text-[#8E8E93] text-xs uppercase tracking-wider">{{ d.label }}</div>
-            <div class="mt-1 font-bold text-[#007AFF] text-xl">{{ d.avg.toFixed(2) }}</div>
+            <!-- 补偿后值 -->
+            <div class="mt-1 font-bold text-xl"
+              :class="d.isCompensated ? 'text-[#34C759]' : 'text-[#007AFF]'">
+              {{ d.compensated.toFixed(2) }}
+              <span v-if="d.isCompensated" class="ml-1 text-[#34C759] text-xs">(+{{ (d.compensated - d.avg).toFixed(2) }})</span>
+            </div>
+            <!-- 原始A值 & B值 -->
+            <div class="mt-0.5 text-[#8E8E93] text-[10px]">
+              A={{ d.avg.toFixed(2) }} B={{ d.playerB.toFixed(2) }}
+            </div>
+            <!-- 补偿详情 -->
+            <div v-if="d.isCompensated" class="mt-1 text-[#34C759] text-[9px] leading-tight">
+              阈值={{ d.threshold.toFixed(2) }} per={{ (d.per * 100).toFixed(1) }}%
+            </div>
             <div class="mt-0.5 text-[#8E8E93] text-[10px]">max {{ d.max.toFixed(2) }} / {{ d.count }}首</div>
           </div>
+        </div>
+        <!-- 补偿公式说明 -->
+        <div v-if="fullScoreRefs" class="mt-3 bg-black/[0.02] p-3 border border-black/5 rounded-[12px] text-[#8E8E93] text-[11px] leading-relaxed">
+          <span class="font-semibold text-[#1D1D1F]">补偿公式：</span>
+          A = 原权重(1-10,10-1)加权平均，B = 20-1权重加权平均<br/>
+          当 B ≥ 阈值(满分第40位) 时：per = (B − 阈值) / (满分B − 阈值)<br/>
+          补偿后 = A + per × (15.5 − 满分A)
         </div>
       </div>
 

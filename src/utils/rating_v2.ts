@@ -312,6 +312,116 @@ export function calculateBestPossibleRating(
   return calculateTaikoRating(songsDB, input);
 }
 
+// ============================================================
+// V2 补偿机制 (Compensation)
+// ============================================================
+
+// A权重：原有权重（1-10位=1-10, 11-20位=10-1）
+const WEIGHTS_A = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
+
+// B权重：1-20位权重=20-1（位置越靠前权重越大）
+export const WEIGHTS_B = [20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
+
+// 全满分各维度原始结果（内部使用）
+interface FullScoreEntry {
+  rating: number
+  stamina_rt: number
+  handspeed_rt: number
+  burst_rt: number
+  complex_rt: number
+  rhythm_rt: number
+  accuracy_rt: number
+}
+
+// 全满分参考数据：每个维度的阈值（第40位）、满分A、满分B
+export interface FullScoreRef {
+  threshold: number  // 第40位的值
+  fullA: number      // 满分A（原权重加权平均）
+  fullB: number      // 满分B（20-1权重加权平均）
+}
+
+/**
+ * 计算加权平均值
+ * @param values 已排序（降序）的值数组
+ * @param weights 权重数组
+ * @returns 加权平均值
+ */
+function weightedAverage(values: number[], weights: number[]): number {
+  const n = Math.min(values.length, weights.length)
+  if (n === 0) return 0
+  let sum = 0
+  let wSum = 0
+  for (let i = 0; i < n; i++) {
+    sum += values[i] * weights[i]
+    wSum += weights[i]
+  }
+  return wSum > 0 ? sum / wSum : 0
+}
+
+/**
+ * 计算各维度的全满分参考数据
+ * 对所有曲目以 100%准确率/0%不可率 计算，取每个维度的：
+ *   - threshold: 第40位的值（降序排序后索引39）
+ *   - fullA: Top20 原权重(1-10,10-1) 加权平均
+ *   - fullB: Top20 20-1权重 加权平均
+ * @param songsDB 曲目数据库
+ * @returns 各维度的参考数据映射
+ */
+export function calcFullScoreReference(songsDB: SongData[]): Record<string, FullScoreRef> {
+  const entries: FullScoreEntry[] = []
+
+  for (const song of songsDB) {
+    const result = calculateTaikoRating(songsDB, {
+      id: song.id,
+      difficulty: song.difficulty,
+      accuracy_per: 1.0,
+      bad_per: 0,
+    })
+    if (!result) continue
+    entries.push({
+      rating: result.rating,
+      stamina_rt: result.stamina_rt,
+      handspeed_rt: result.handspeed_rt,
+      burst_rt: result.burst_rt,
+      complex_rt: result.complex_rt,
+      rhythm_rt: result.rhythm_rt,
+      accuracy_rt: result.accuracy_rt,
+    })
+  }
+
+  const dimKeys: (keyof FullScoreEntry)[] = [
+    'rating', 'stamina_rt', 'handspeed_rt', 'burst_rt', 'complex_rt', 'rhythm_rt', 'accuracy_rt',
+  ]
+  const refs: Record<string, FullScoreRef> = {}
+
+  for (const key of dimKeys) {
+    const sorted = entries.map(e => e[key]).sort((a, b) => b - a)
+    const top20 = sorted.slice(0, 20)
+    // 阈值 = 第40位的值，不足40首时取最后一位
+    const threshold = sorted.length >= 40 ? sorted[39] : (sorted.length > 0 ? sorted[sorted.length - 1] : 0)
+    const fullA = weightedAverage(top20, WEIGHTS_A)
+    const fullB = weightedAverage(top20, WEIGHTS_B)
+    refs[key] = { threshold, fullA, fullB }
+  }
+
+  return refs
+}
+
+/**
+ * V2 补偿计算
+ * 当玩家加权平均值B超过阈值时，对原平均值A进行向上补偿
+ *
+ * @param playerA 玩家原权重加权平均值 (WEIGHTS_A)
+ * @param playerB 玩家20-1权重加权平均值 (WEIGHTS_B)
+ * @param ref 全满分参考数据（由 calcFullScoreReference 计算）
+ * @returns 补偿后的值；若 playerB 未超过阈值则返回 playerA
+ */
+export function compensateV2(playerA: number, playerB: number, ref: FullScoreRef): number {
+  if (playerB < ref.threshold) return playerA
+  const per = (playerB - ref.threshold) / (ref.fullB - ref.threshold)
+  return playerA + per * (15.5 - ref.fullA)
+}
+
 // 导出类型，便于在其他文件中使用
 export type { SongData, CalculationInput, CalculationResult, CalculationIntermediate };
 
