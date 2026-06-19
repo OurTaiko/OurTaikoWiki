@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import { calculateTaikoRating, calcFullScoreReference, compensateV2, WEIGHTS_B, type SongData, type CalculationInput, type FullScoreRef } from '@utils/rating_v2'
+import { calculateTaikoRating, calcFullScoreReference, WEIGHTS_A, WEIGHTS_B, calcCompensatedDim, type SongData, type CalculationInput, type FullScoreRef } from '@utils/rating_v2'
 import { parsePastedScores, calcY, calcSingleRating } from '@utils/calculator'
 import type { UserScore } from '@/types'
 import RadarChart from '@components/RadarChart.vue'
@@ -338,89 +338,31 @@ function loadFromLocalStorage() {
   calculating.value = false
 }
 
-// --- Top 20 weighted average ---
-// Weights: pos 1-10 → 1,2,3,4,5,6,7,8,9,10 | pos 11-20 → 10,9,8,7,6,5,4,3,2,1
-const TOP20_WEIGHTS = [
-  1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
-  10, 9, 8, 7, 6, 5, 4, 3, 2, 1,
-]
-
+// --- Top 20 helpers ---
 function getTop20(list: Entry[], key: DimKey): Entry[] {
   const valid = list.filter(e => !isNaN(e[key]))
   return [...valid].sort((a, b) => b[key] - a[key]).slice(0, 20)
-}
-
-function top20WeightedAvg(list: Entry[], key: DimKey): number {
-  const top = getTop20(list, key)
-  if (top.length === 0) return 0
-  let wSum = 0, sum = 0
-  for (let i = 0; i < top.length; i++) {
-    const w = TOP20_WEIGHTS[i]
-    sum += top[i][key] * w
-    wSum += w
-  }
-  return wSum > 0 ? sum / wSum : 0
-}
-
-// B-weight 加权平均：位置1-20权重=20-1
-function top20WeightedAvgB(list: Entry[], key: DimKey): number {
-  const top = getTop20(list, key)
-  if (top.length === 0) return 0
-  let wSum = 0, sum = 0
-  for (let i = 0; i < top.length; i++) {
-    const w = WEIGHTS_B[i]
-    sum += top[i][key] * w
-    wSum += w
-  }
-  return wSum > 0 ? sum / wSum : 0
-}
-
-function top20Max(list: Entry[], key: DimKey): number {
-  const top = getTop20(list, key)
-  return top.length > 0 ? top[0][key] : 0
 }
 
 const top20Summary = computed(() => {
   if (entries.value.length === 0) return null
   const refs = fullScoreRefs.value
   return DIM_KEYS.map(k => {
-    const playerA = top20WeightedAvg(entries.value, k)
-    const playerB = top20WeightedAvgB(entries.value, k)
-    const max = top20Max(entries.value, k)
-    const count = Math.min(entries.value.length, 20)
-
-    let compensated = playerA
-    let per = 0
-    let threshold = 0
-    let fullB = 0
-    let fullA = 0
-    let isCompensated = false
-
-    if (refs && refs[k]) {
-      const r = refs[k]
-      threshold = r.threshold
-      fullA = r.fullA
-      fullB = r.fullB
-      if (playerB >= threshold) {
-        isCompensated = true
-        per = (playerB - threshold) / (fullB - threshold)
-        compensated = playerA + per * (15.5 - fullA)
-      }
-    }
-
+    const top20 = getTop20(entries.value, k).map(e => e[k])
+    const comp = calcCompensatedDim(top20, refs?.[k])
     return {
       key: k,
       label: DIM_LABELS[k],
-      avg: playerA,
-      compensated,
-      max,
-      count,
-      isCompensated,
-      playerB,
-      per,
-      threshold,
-      fullA,
-      fullB,
+      avg: comp.playerA,
+      compensated: comp.compensated,
+      max: top20.length > 0 ? top20[0] : 0,
+      count: Math.min(entries.value.length, 20),
+      isCompensated: comp.isCompensated,
+      playerB: comp.playerB,
+      per: comp.per,
+      threshold: comp.threshold,
+      fullA: comp.fullA,
+      fullB: comp.fullB,
     }
   })
 })
@@ -445,12 +387,13 @@ function logTop20Detail() {
 
   for (const key of DIM_KEYS) {
     const top = getTop20(entries.value, key)
+    const topValues = top.map(e => e[key])
     let wSumA = 0, sumA = 0
     let wSumB = 0, sumB = 0
     const rows: Array<{ rank: number; title: string; value: number; weightA: number; weightB: number; contribA: number; contribB: number }> = []
 
     for (let i = 0; i < top.length; i++) {
-      const wA = TOP20_WEIGHTS[i]
+      const wA = WEIGHTS_A[i]
       const wB = WEIGHTS_B[i] ?? 0
       const val = top[i][key]
       sumA += val * wA
@@ -468,24 +411,17 @@ function logTop20Detail() {
       })
     }
 
-    const playerA = wSumA > 0 ? sumA / wSumA : 0
-    const playerB = wSumB > 0 ? sumB / wSumB : 0
+    const comp = calcCompensatedDim(topValues, refs?.[key])
 
-    let compensated = playerA
     let compInfo = ''
-    if (refs && refs[key]) {
-      const r = refs[key]
-      if (playerB >= r.threshold) {
-        const per = (playerB - r.threshold) / (r.fullB - r.threshold)
-        compensated = playerA + per * (15.5 - r.fullA)
-        compInfo = ` | 补偿后=%c${compensated.toFixed(4)}%c (阈值=${r.threshold.toFixed(2)}, per=${(per*100).toFixed(1)}%)`
-      } else {
-        compInfo = ` | 未触发补偿 (B=${playerB.toFixed(4)} < 阈值=${r.threshold.toFixed(2)})`
-      }
+    if (comp.isCompensated) {
+      compInfo = ` | 补偿后=%c${comp.compensated.toFixed(4)}%c (阈值=${comp.threshold.toFixed(2)}, per=${(comp.per * 100).toFixed(1)}%)`
+    } else if (refs?.[key]) {
+      compInfo = ` | 未触发补偿 (B=${comp.playerB.toFixed(4)} < 阈值=${comp.threshold.toFixed(2)})`
     }
 
     console.groupCollapsed(
-      `%c${DIM_LABELS[key]}%c A=%c${playerA.toFixed(4)}%c B=%c${playerB.toFixed(4)}${compInfo}`,
+      `%c${DIM_LABELS[key]}%c A=%c${comp.playerA.toFixed(4)}%c B=%c${comp.playerB.toFixed(4)}${compInfo}`,
       'font-weight:bold;color:#1D1D1F',
       '',
       'font-weight:bold;color:#007AFF',
@@ -502,13 +438,12 @@ function logTop20Detail() {
       '权重B': r.weightB,
       '贡献B': r.contribB.toFixed(4),
     })))
-    console.log(`A权总和: ${wSumA}, A加权和: ${sumA.toFixed(4)}, A平均: ${playerA.toFixed(4)}`)
-    console.log(`B权总和: ${wSumB}, B加权和: ${sumB.toFixed(4)}, B平均: ${playerB.toFixed(4)}`)
-    if (refs && refs[key]) {
-      const r = refs[key]
-      console.log(`满分参考: 阈值(第40位)=${r.threshold.toFixed(4)}, 满分A=${r.fullA.toFixed(4)}, 满分B=${r.fullB.toFixed(4)}`)
+    console.log(`A权总和: ${wSumA}, A加权和: ${sumA.toFixed(4)}, A平均: ${comp.playerA.toFixed(4)}`)
+    console.log(`B权总和: ${wSumB}, B加权和: ${sumB.toFixed(4)}, B平均: ${comp.playerB.toFixed(4)}`)
+    if (refs?.[key]) {
+      console.log(`满分参考: 阈值(第40位)=${comp.threshold.toFixed(4)}, 满分A=${comp.fullA.toFixed(4)}, 满分B=${comp.fullB.toFixed(4)}`)
     }
-    console.log(`补偿后: ${compensated.toFixed(4)}`)
+    console.log(`补偿后: ${comp.compensated.toFixed(4)}`)
     console.groupEnd()
   }
 

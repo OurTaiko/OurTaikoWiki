@@ -317,7 +317,7 @@ export function calculateBestPossibleRating(
 // ============================================================
 
 // A权重：原有权重（1-10位=1-10, 11-20位=10-1）
-const WEIGHTS_A = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
+export const WEIGHTS_A = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
 
 // B权重：1-20位权重=20-1（位置越靠前权重越大）
 export const WEIGHTS_B = [20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
@@ -346,7 +346,7 @@ export interface FullScoreRef {
  * @param weights 权重数组
  * @returns 加权平均值
  */
-function weightedAverage(values: number[], weights: number[]): number {
+export function weightedAverage(values: number[], weights: number[]): number {
   const n = Math.min(values.length, weights.length)
   if (n === 0) return 0
   let sum = 0
@@ -420,6 +420,51 @@ export function compensateV2(playerA: number, playerB: number, ref: FullScoreRef
   if (playerB < ref.threshold) return playerA
   const per = (playerB - ref.threshold) / (ref.fullB - ref.threshold)
   return playerA + per * (15.5 - ref.fullA)
+}
+
+// 单个维度的补偿计算结果
+export interface CompensatedDimResult {
+  playerA: number
+  playerB: number
+  compensated: number
+  isCompensated: boolean
+  per: number
+  threshold: number
+  fullA: number
+  fullB: number
+}
+
+/**
+ * 对单个维度进行完整的补偿计算
+ * 传入已排序（降序）的Top20值数组和参考数据，返回A/B加权平均及补偿结果
+ *
+ * @param sortedTopValues 已按降序排列的Top20值数组
+ * @param ref 全满分参考数据（可选，未提供则不进行补偿）
+ * @returns 包含A、B加权平均和补偿结果的完整数据
+ */
+export function calcCompensatedDim(
+  sortedTopValues: number[],
+  ref?: FullScoreRef,
+): CompensatedDimResult {
+  const playerA = weightedAverage(sortedTopValues, WEIGHTS_A)
+  const playerB = weightedAverage(sortedTopValues, WEIGHTS_B)
+
+  const compensated = ref ? compensateV2(playerA, playerB, ref) : playerA
+  const isCompensated = ref ? playerB >= ref.threshold : false
+  const per = ref && playerB >= ref.threshold
+    ? (playerB - ref.threshold) / (ref.fullB - ref.threshold)
+    : 0
+
+  return {
+    playerA,
+    playerB,
+    compensated,
+    isCompensated,
+    per,
+    threshold: ref?.threshold ?? 0,
+    fullA: ref?.fullA ?? 0,
+    fullB: ref?.fullB ?? 0,
+  }
 }
 
 // 导出类型，便于在其他文件中使用

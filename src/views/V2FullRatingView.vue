@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { calculateTaikoRating, calcFullScoreReference, compensateV2, WEIGHTS_B, type SongData, type CalculationInput, type FullScoreRef } from '@utils/rating_v2'
+import { calculateTaikoRating, calcFullScoreReference, calcCompensatedDim, type SongData, type CalculationInput, type FullScoreRef } from '@utils/rating_v2'
 import { calcY, calcSingleRating } from '@utils/calculator'
 import RadarChart from '@components/RadarChart.vue'
 
@@ -271,88 +271,31 @@ function calcAllPerfect() {
   calculating.value = false
 }
 
-// --- Top 20 weighted average ---
-const TOP20_WEIGHTS = [
-  1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
-  10, 9, 8, 7, 6, 5, 4, 3, 2, 1,
-]
-
+// --- Top 20 helpers ---
 function getTop20(list: Entry[], key: DimKey): Entry[] {
   const valid = list.filter(e => !isNaN(e[key]))
   return [...valid].sort((a, b) => b[key] - a[key]).slice(0, 20)
-}
-
-function top20WeightedAvg(list: Entry[], key: DimKey): number {
-  const top = getTop20(list, key)
-  if (top.length === 0) return 0
-  let wSum = 0, sum = 0
-  for (let i = 0; i < top.length; i++) {
-    const w = TOP20_WEIGHTS[i]
-    sum += top[i][key] * w
-    wSum += w
-  }
-  return wSum > 0 ? sum / wSum : 0
-}
-
-// B-weight 加权平均：位置1-20权重=20-1
-function top20WeightedAvgB(list: Entry[], key: DimKey): number {
-  const top = getTop20(list, key)
-  if (top.length === 0) return 0
-  let wSum = 0, sum = 0
-  for (let i = 0; i < top.length; i++) {
-    const w = WEIGHTS_B[i]
-    sum += top[i][key] * w
-    wSum += w
-  }
-  return wSum > 0 ? sum / wSum : 0
-}
-
-function top20Max(list: Entry[], key: DimKey): number {
-  const top = getTop20(list, key)
-  return top.length > 0 ? top[0][key] : 0
 }
 
 const top20Summary = computed(() => {
   if (entries.value.length === 0) return null
   const refs = fullScoreRefs.value
   return DIM_KEYS.map(k => {
-    const playerA = top20WeightedAvg(entries.value, k)
-    const playerB = top20WeightedAvgB(entries.value, k)
-    const max = top20Max(entries.value, k)
-    const count = Math.min(entries.value.length, 20)
-
-    let compensated = playerA
-    let per = 0
-    let threshold = 0
-    let fullB = 0
-    let fullA = 0
-    let isCompensated = false
-
-    if (refs && refs[k]) {
-      const r = refs[k]
-      threshold = r.threshold
-      fullA = r.fullA
-      fullB = r.fullB
-      if (playerB >= threshold) {
-        isCompensated = true
-        per = (playerB - threshold) / (fullB - threshold)
-        compensated = playerA + per * (15.5 - fullA)
-      }
-    }
-
+    const top20 = getTop20(entries.value, k).map(e => e[k])
+    const comp = calcCompensatedDim(top20, refs?.[k])
     return {
       key: k,
       label: DIM_LABELS[k],
-      avg: playerA,
-      compensated,
-      max,
-      count,
-      isCompensated,
-      playerB,
-      per,
-      threshold,
-      fullA,
-      fullB,
+      avg: comp.playerA,
+      compensated: comp.compensated,
+      max: top20.length > 0 ? top20[0] : 0,
+      count: Math.min(entries.value.length, 20),
+      isCompensated: comp.isCompensated,
+      playerB: comp.playerB,
+      per: comp.per,
+      threshold: comp.threshold,
+      fullA: comp.fullA,
+      fullB: comp.fullB,
     }
   })
 })
