@@ -419,7 +419,7 @@ export function calcFullScoreReference(songsDB: SongData[]): Record<string, Full
 export function compensateV2(playerA: number, playerB: number, ref: FullScoreRef): number {
   if (playerB < ref.threshold) return playerA
   const per = (playerB - ref.threshold) / (ref.fullB - ref.threshold)
-  return playerA + per * (15.5 - ref.fullA)
+  return playerA + per * (15.5 - playerA)
 }
 
 // 单个维度的补偿计算结果
