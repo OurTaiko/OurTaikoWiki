@@ -398,7 +398,8 @@ export function calcFullScoreReference(songsDB: SongData[]): Record<string, Full
     const sorted = entries.map(e => e[key]).sort((a, b) => b - a)
     const top20 = sorted.slice(0, 20)
     // 阈值 = 第40位的值，不足40首时取最后一位
-    const threshold = sorted.length >= 40 ? sorted[39] : (sorted.length > 0 ? sorted[sorted.length - 1] : 0)
+    // const threshold = sorted.length >= 40 ? sorted[39] : (sorted.length > 0 ? sorted[sorted.length - 1] : 0)
+    const threshold = 14
     const fullA = weightedAverage(top20, WEIGHTS_A)
     const fullB = weightedAverage(top20, WEIGHTS_B)
     refs[key] = { threshold, fullA, fullB }
