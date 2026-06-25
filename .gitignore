@@ -27,3 +27,4 @@ test.*
 
 package-lock.json
 .claude/
+/.reasonix
