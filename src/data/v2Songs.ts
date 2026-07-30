@@ -1,4 +1,5 @@
 import type { SongData } from '@utils/rating_v2'
+import ignoredSongs from '@data/ignoredSongs'
 
 const GUGU_CONSTANTS_URL = 'https://cdn.ourtaiko.org/api/gugu_constants'
 const FUMEN_CONSTANTS_URL = 'https://cdn.ourtaiko.org/api/fumendb_constants'
@@ -78,6 +79,7 @@ export function parseGuguConstants(
   for (const [rawId, difficulties] of Object.entries(constants)) {
     const id = parseNumericId(rawId)
     if (id === null) continue
+    if (ignoredSongs.includes(id)) continue
 
     for (const difficultyName of Object.keys(DIFFICULTY_MAP) as DifficultyName[]) {
       const data = difficulties[difficultyName]
