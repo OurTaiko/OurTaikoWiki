@@ -4,20 +4,12 @@ import { calculateTaikoRating, calcFullScoreReference, WEIGHTS_A, WEIGHTS_B, cal
 import { parsePastedScores, calcY, calcSingleRating } from '@utils/calculator'
 import type { UserScore } from '@/types'
 import RadarChart from '@components/RadarChart.vue'
-
-// --- Difficulty string → number mapping ---
-const DIFFICULTY_MAP: Record<string, number> = {
-  easy: 1,
-  normal: 2,
-  hard: 3,
-  oni: 4,
-  edit: 5,
-}
+import { loadV2SongsData, type V2SongMeta } from '@data/v2Songs'
 
 // --- State ---
 const inputText = ref('')
 const songsDB = ref<SongData[]>([])
-const songMeta = ref<Map<string, { title: string; totalNotes: number }>>(new Map())
+const songMeta = ref<Map<string, V2SongMeta>>(new Map())
 const dbLoading = ref(false)
 const dbError = ref('')
 const calculating = ref(false)
@@ -136,99 +128,19 @@ const DIM_LABELS: Record<DimKey, string> = {
   accuracy_rt: '精度',
 }
 
-// --- Load CSV ---
-async function loadCSV() {
+// --- Load constants API ---
+async function loadV2Data() {
   dbLoading.value = true
   dbError.value = ''
   try {
-    const resp = await fetch('/constants_id.csv')
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`)
-    const text = await resp.text()
-    const { songs, meta } = parseCSV(text)
+    const { songs, meta } = await loadV2SongsData()
     songsDB.value = songs
     songMeta.value = meta
   } catch (e: any) {
-    dbError.value = 'CSV加载失败: ' + e.message
+    dbError.value = '定数数据加载失败: ' + e.message
   } finally {
     dbLoading.value = false
   }
-}
-
-// --- CSV parser ---
-function parseCSV(text: string): { songs: SongData[]; meta: Map<string, { title: string; totalNotes: number }> } {
-  const lines = text.split(/\r?\n/).filter(l => l.trim())
-  if (lines.length < 2) return { songs: [], meta: new Map() }
-
-  const header = parseCSVLine(lines[0])
-  const idx = (name: string) => header.indexOf(name)
-
-  const songs: SongData[] = []
-  const meta = new Map<string, { title: string; totalNotes: number }>()
-
-  for (let i = 1; i < lines.length; i++) {
-    const cols = parseCSVLine(lines[i])
-    if (cols.length < header.length) continue
-
-    const difficultyStr = cols[idx('difficulty')]?.trim().toLowerCase() ?? ''
-    const difficulty = DIFFICULTY_MAP[difficultyStr]
-    if (difficulty === undefined) continue
-
-    const parseNum = (s: string) => { const v = parseFloat(s); return isNaN(v) ? 0 : v }
-
-    const id = parseInt(cols[idx('id')]) || 0
-    const totalNotes = parseInt(cols[idx('totalNotes')]) || 0
-
-    songs.push({
-      id,
-      difficulty,
-      stamina: parseNum(cols[idx('stamina')]),
-      handspeed: parseNum(cols[idx('handspeed')]),
-      burst: parseNum(cols[idx('burst')]),
-      complex: parseNum(cols[idx('complex')]),
-      rhythm: parseNum(cols[idx('rhythm')]),
-      main_constant: parseNum(cols[idx('main_constant')]),
-      sub_constant_1: parseNum(cols[idx('sub_constant_1')]),
-      sub_constant_2: parseNum(cols[idx('sub_constant_2')]),
-    })
-
-    meta.set(`${id}-${difficulty}`, {
-      title: cols[idx('title')]?.trim() ?? '',
-      totalNotes,
-    })
-  }
-  return { songs, meta }
-}
-
-function parseCSVLine(line: string): string[] {
-  const result: string[] = []
-  let current = ''
-  let inQuotes = false
-  for (let i = 0; i < line.length; i++) {
-    const ch = line[i]
-    if (inQuotes) {
-      if (ch === '"') {
-        if (i + 1 < line.length && line[i + 1] === '"') {
-          current += '"'
-          i++
-        } else {
-          inQuotes = false
-        }
-      } else {
-        current += ch
-      }
-    } else {
-      if (ch === '"') {
-        inQuotes = true
-      } else if (ch === ',') {
-        result.push(current)
-        current = ''
-      } else {
-        current += ch
-      }
-    }
-  }
-  result.push(current)
-  return result
 }
 
 // --- Calculate ---
@@ -454,7 +366,7 @@ watch(entries, () => {
   logTop20Detail()
 })
 // --- Initialize ---
-loadCSV().then(() => {
+loadV2Data().then(() => {
   // 计算全满分参考数据（供补偿机制使用）
   if (songsDB.value.length > 0) {
     fullScoreRefs.value = calcFullScoreReference(songsDB.value)
