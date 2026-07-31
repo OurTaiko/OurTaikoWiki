@@ -509,7 +509,7 @@ watch([searchTerm, minConstant, maxConstant, statusFilters, onlyCnSongs, sortKey
 </script>
 
 <template>
-  <div class="mx-auto p-8 max-md:p-4 max-w-[1300px]">
+  <div class="ffxiv-ui__workspace mx-auto p-8 max-md:p-4 max-w-[1300px]">
     <div class="mb-8">
       <div class="flex max-md:flex-col items-center max-md:items-stretch gap-4">
         <div class="relative flex-1 max-w-[400px]">

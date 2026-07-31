@@ -384,7 +384,7 @@ loadV2Data().then(() => {
 
 <template>
   <div
-    class="bg-white/80 shadow-sm backdrop-blur-xl mx-auto p-8 max-md:p-4 border border-black/5 rounded-[32px] max-w-[1200px] min-h-[600px]">
+    class="ffxiv-ui__panel bg-white/80 shadow-sm backdrop-blur-xl mx-auto p-8 max-md:p-4 border border-black/5 rounded-[32px] max-w-[1200px] min-h-[600px]">
     <h1 class="mb-6 font-bold text-[#1D1D1F] text-2xl tracking-tight">Rating V2 算法测试</h1>
 
     <!-- CSV load status -->

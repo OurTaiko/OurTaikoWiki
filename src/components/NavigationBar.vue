@@ -55,7 +55,7 @@ const navigateToV2Full = () => {
 </script>
 
 <template>
-  <nav class="top-0 right-0 left-0 z-[1000] sticky bg-white/70 backdrop-blur-md border-black/5 border-b">
+  <nav class="ffxiv-ui__nav top-0 right-0 left-0 z-[1000] sticky bg-white/70 backdrop-blur-md border-black/5 border-b">
     <div
       class="flex max-md:flex-col justify-between items-center max-md:gap-4 mx-auto px-8 max-md:px-4 py-3 max-w-[1200px]">
       <div class="flex items-center gap-3 font-bold text-[#1D1D1F] text-xl">

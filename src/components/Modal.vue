@@ -27,7 +27,7 @@ const handleOverlayClick = (e: MouseEvent) => {
 <template>
   <Transition name="modal">
     <div v-if="show" class="z-[1000] fixed inset-0 flex justify-center items-center bg-black/40 backdrop-blur-sm transition-opacity duration-300" @click="handleOverlayClick">
-      <div class="bg-white/90 shadow-2xl backdrop-blur-2xl border border-white/20 rounded-[32px] min-w-[320px] max-w-[90%] overflow-hidden transition-all duration-300">
+      <div class="ffxiv-ui-dialog bg-white/90 shadow-2xl backdrop-blur-2xl border border-white/20 rounded-[32px] min-w-[320px] max-w-[90%] overflow-hidden transition-all duration-300">
         <div class="px-8 pt-8 pb-4">
           <h3 class="m-0 font-bold text-[#1D1D1F] text-xl text-center">{{ title }}</h3>
         </div>

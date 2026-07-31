@@ -171,7 +171,7 @@ const changedSongs = computed(() => {
 
 <template>
     <div
-        class="bg-white/80 shadow-sm backdrop-blur-xl mx-auto p-8 max-md:p-4 border border-black/5 rounded-[32px] max-w-[1100px] min-h-[600px]">
+        class="ffxiv-ui__panel bg-white/80 shadow-sm backdrop-blur-xl mx-auto p-8 max-md:p-4 border border-black/5 rounded-[32px] max-w-[1100px] min-h-[600px]">
         <div v-if="notice" class="my-10 font-medium text-[#8E8E93] text-center">{{ notice }}</div>
 
         <div v-else class="flex max-md:flex-col gap-8 min-h-[500px]">

@@ -233,7 +233,7 @@ const analyze = async (scoreData: UserScore[]) => {
 <template>
   <div class="mx-auto max-w-[800px]">
     <!-- 顶部提示卡片 -->
-    <section class="bg-white/70 shadow-sm backdrop-blur-xl mb-6 p-6 border border-white/20 rounded-[24px]">
+    <section class="ffxiv-ui__panel ffxiv-ui__panel--notice bg-white/70 shadow-sm backdrop-blur-xl mb-6 p-6 border border-white/20 rounded-[24px]">
       <div class="flex items-start gap-4">
         <div class="bg-[#007AFF]/10 p-2 rounded-full">
           <i class="text-[#007AFF] fa-solid fa-circle-info"></i>
@@ -245,7 +245,7 @@ const analyze = async (scoreData: UserScore[]) => {
       </div>
     </section>
 
-    <section class="bg-white/70 shadow-sm backdrop-blur-xl my-8 border border-white/20 rounded-[32px] overflow-hidden">
+    <section class="ffxiv-ui__panel bg-white/70 shadow-sm backdrop-blur-xl my-8 border border-white/20 rounded-[32px] overflow-hidden">
       <!-- Tab 栏 -->
       <div class="relative flex border-black/5 border-b">
         <div class="bottom-0 absolute bg-[#007AFF] rounded-full h-0.5 transition-all duration-300 ease-out" :style="{
