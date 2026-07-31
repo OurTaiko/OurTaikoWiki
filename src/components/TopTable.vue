@@ -279,7 +279,7 @@ watch(
       </div>
 
       <!-- 分页控制 -->
-      <div v-if="totalPages > 1" class="flex flex-wrap justify-center items-center gap-2 bg-black/5 p-6 no-capture">
+      <div v-if="totalPages > 1" class="flex flex-wrap justify-center items-center gap-2 bg-black/5 p-6">
         <button 
           @click="prevPage" 
           :disabled="currentPage === 1"

@@ -3,7 +3,6 @@ import type { SongStats, RatingDimensions } from '@/types'
 import RadarChart from '@components/RadarChart.vue'
 import TopTable from '@components/TopTable.vue'
 import { eventBus } from '@utils/eventBus'
-import html2canvas from 'html2canvas'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useScoreStore } from '@/store/scoreStore'
 import { useI18n } from 'vue-i18n'
@@ -27,9 +26,6 @@ const notice = computed(() => {
     if (filteredSongStats.value.length === 0) return t('report.noData')
     return ''
 })
-
-const contentRef = ref<HTMLElement | null>(null)
-const isSaving = ref(false)
 
 const activeSection = ref('overview')
 const activeSubTab = ref<'top' | 'recommend'>('top')
@@ -119,23 +115,17 @@ const isAboveOverall = (song: SongStats, key: keyof RatingDimensions): boolean =
     return getSongDimensionValue(song, key) > getOverallDimensionValue(key)
 }
 
-const handleScreenshot = () => {
-    saveElementAsImage(contentRef.value, `taiko-${activeSection.value}`)
-}
-
 function handleCnFilterChange(value: boolean) {
     store.setCnFilter(value)
 }
 
 onMounted(async () => {
-    eventBus.on('trigger-screenshot', handleScreenshot)
     eventBus.on('cn-filter-changed', handleCnFilterChange)
 
     await store.init()
 })
 
 onUnmounted(() => {
-    eventBus.off('trigger-screenshot', handleScreenshot)
     eventBus.off('cn-filter-changed', handleCnFilterChange)
 })
 
@@ -177,27 +167,6 @@ const changedSongs = computed(() => {
         .sort((a, b) => (b._ratingDiff ?? 0) - (a._ratingDiff ?? 0))
 })
 
-async function saveElementAsImage(element: HTMLElement | null, fileName: string) {
-    if (!element || isSaving.value) return
-    isSaving.value = true
-    try {
-        const canvas = await html2canvas(element, {
-            backgroundColor: '#ffffff',
-            scale: 2,
-            useCORS: true,
-            ignoreElements: (el: Element) => el.classList.contains('no-capture')
-        })
-        const link = document.createElement('a')
-        link.download = `${fileName}.png`
-        link.href = canvas.toDataURL('image/png')
-        link.click()
-    } catch (e) {
-        console.error(e)
-        alert('保存失败')
-    } finally {
-        isSaving.value = false
-    }
-}
 </script>
 
 <template>
@@ -208,7 +177,7 @@ async function saveElementAsImage(element: HTMLElement | null, fileName: string)
         <div v-else class="flex max-md:flex-col gap-8 min-h-[500px]">
             <!-- Sidebar -->
             <div
-                class="flex flex-col flex-shrink-0 max-md:mb-6 pr-6 max-md:pr-0 max-md:pb-4 border-black/5 border-r max-md:border-r-0 max-md:border-b w-[220px] max-md:w-full no-capture">
+                class="flex flex-col flex-shrink-0 max-md:mb-6 pr-6 max-md:pr-0 max-md:pb-4 border-black/5 border-r max-md:border-r-0 max-md:border-b w-[220px] max-md:w-full">
                 <div class="max-md:flex flex-1 max-md:gap-2 max-md:pb-2 max-md:overflow-x-auto custom-scrollbar">
                     <div v-for="item in menuItems" :key="item.id"
                         class="mb-1.5 max-md:mb-0 px-5 py-3 rounded-2xl font-semibold text-sm max-md:whitespace-nowrap active:scale-[0.98] transition-all duration-200 cursor-pointer"
@@ -220,7 +189,7 @@ async function saveElementAsImage(element: HTMLElement | null, fileName: string)
             </div>
 
             <!-- Content Area -->
-            <div class="relative flex-1 min-w-0" ref="contentRef">
+            <div class="relative flex-1 min-w-0">
                 <!-- Overview Section -->
                 <div v-if="activeSection === 'overview'" class="flex flex-col items-center">
                     <div class="mb-8 w-full text-center">

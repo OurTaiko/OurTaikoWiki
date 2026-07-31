@@ -25,8 +25,6 @@ export default defineConfig({
           'vue-vendor': ['vue', 'vue-router'],
           // 将Chart.js相关库分离到单独的chunk
           'chart-vendor': ['chart.js', 'chartjs-plugin-datalabels'],
-          // 将html2canvas分离到单独的chunk
-          'html2canvas-vendor': ['html2canvas'],
         },
       },
     },

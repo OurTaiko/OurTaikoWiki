@@ -24,7 +24,7 @@ function toggleCnSongs() {
 </script>
 
 <template>
-  <div class="no-capture">
+  <div>
     <!-- Main Button -->
     <button 
       class="right-[30px] bottom-[162px] z-[999] fixed flex justify-center items-center bg-white/70 shadow-lg backdrop-blur-xl border border-white/20 rounded-full w-14 h-14 text-[#007AFF] text-2xl active:scale-90 transition-all duration-300 cursor-pointer" 

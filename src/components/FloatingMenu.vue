@@ -1,12 +1,7 @@
 <script setup lang="ts">
-import { eventBus } from '@utils/eventBus'
-import { computed, ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { ref } from 'vue'
 
-const route = useRoute()
 const isOpen = ref(false)
-
-const isReportPage = computed(() => route.name === 'report')
 
 function toggleMenu() {
   isOpen.value = !isOpen.value
@@ -16,14 +11,10 @@ function closeMenu() {
   isOpen.value = false
 }
 
-function handleScreenshot() {
-  eventBus.emit('trigger-screenshot')
-  closeMenu()
-}
 </script>
 
 <template>
-  <div class="no-capture">
+  <div>
     <!-- Main Button -->
     <button 
       class="right-[30px] bottom-[30px] z-[999] fixed flex justify-center items-center bg-[#007AFF] hover:bg-[#0071e3] shadow-lg border-none rounded-full w-14 h-14 text-white text-2xl active:scale-90 transition-all duration-300 cursor-pointer" 
@@ -54,15 +45,6 @@ function handleScreenshot() {
               <span>加入QQ群</span>
             </a>
             
-            <button 
-              v-if="isReportPage" 
-              @click="handleScreenshot" 
-              class="flex items-center gap-4 bg-black/5 hover:bg-black/10 px-5 py-4 rounded-2xl w-full font-semibold text-[#1D1D1F] text-base active:scale-[0.98] transition-all duration-200 cursor-pointer"
-            >
-              <i class="fa-solid fa-camera"></i>
-              <span>保存截图</span>
-            </button>
-
             <a 
               href="https://github.com/kirisamevanilla/taiko-best" 
               target="_blank" 
