@@ -149,14 +149,6 @@ function calcLnRating(rating: number, dimensionValue: number, accuracy: number):
   }
 }
 
-function calcBurstAcc(accuracy: number): number {
-  if (accuracy < 8) {
-    return (1 / 8) * accuracy;
-  } else {
-    return (29 * accuracy - 217) / 15;
-  }
-}
-
 /**
  * 主计算函数：计算太鼓达人评分
  * 按照用户指定的计算步骤，基于玩家成绩计算7个维度的rating值
@@ -237,8 +229,6 @@ export function calculateTaikoRating(
   const handspeed_rt = calcSingleRating(songData.handspeed, accuracy);
   
   // 计算爆发rating
-
-  /*
   // const burst_rt_base = calcDimensionRating(rating, songData.burst);
   // const burst_rt_base = calcLnRating(rating, songData.burst, accuracy);
   const burst_rt_base = calcSingleRating(songData.burst, accuracy);
@@ -247,9 +237,6 @@ export function calculateTaikoRating(
   const burst_hs_factor = songData.handspeed > 0 ? MIN(accuracy / songData.handspeed, 1) : 1;
   // const burst_rt = burst_rt_base * burst_hs_factor;
   const burst_rt = burst_rt_base * burst_hs_factor > handspeed_rt ? handspeed_rt + MIN(MAX(accuracy - songData.handspeed, 0) / (songData.burst - songData.handspeed), 1) * (burst_rt_base * burst_hs_factor - handspeed_rt) : burst_rt_base * burst_hs_factor;
-  */
-
-  const burst_rt = calcSingleRating(songData.burst, calcBurstAcc(accuracy));
 
   // 计算复合rating
   // const complex_rt_base = calcDimensionRating(rating, songData.complex);
