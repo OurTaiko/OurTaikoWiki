@@ -14,7 +14,7 @@ import {
 import { calculateV1Report } from '../utils/rating-v1'
 import { calculateV2Report } from '../utils/rating-v2'
 
-const DIFFICULTY_LABELS = ['简单', '普通', '困难', '魔王', '里谱面']
+const DIFFICULTY_LABELS = ['简单', '普通', '困难', '魔王', '里魔王']
 
 function ResultTable({ report, dimension }: { report: RatingReport; dimension: RatingDimensionKey }) {
   const label = report.summary.find((item) => item.key === dimension)?.label || 'Rating'

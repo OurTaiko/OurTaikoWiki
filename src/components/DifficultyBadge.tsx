@@ -5,7 +5,7 @@ export const difficultyMeta: Record<DifficultyKey, { label: string; short: strin
   normal: { label: '普通', short: '竹', index: 2 },
   hard: { label: '困难', short: '松', index: 3 },
   oni: { label: '魔王', short: '鬼', index: 4 },
-  ura: { label: '里谱面', short: '里', index: 5 },
+  ura: { label: '里魔王', short: '里', index: 5 },
 }
 
 interface DifficultyBadgeProps {
