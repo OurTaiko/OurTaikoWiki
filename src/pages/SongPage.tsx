@@ -48,7 +48,6 @@ function V1ConstantPanel({ data }: { data?: V1Difficulty }) {
           { label: 'BPM变化', value: data.bpmChange.toFixed(2) },
           { label: '节奏变化', value: data.hsChange.toFixed(2) },
         ]} />
-        <p className="constant-note">v1 以谱面结构统计定数；雷达图按各指标的 0–100 区间绘制。</p>
       </div>
       <RadarChart title="谱面结构" metrics={metrics} />
     </div>
@@ -80,7 +79,6 @@ function V2ConstantPanel({ data }: { data?: V2Difficulty }) {
           { label: '复合', value: data.complex.toFixed(2) },
           { label: '节奏', value: data.rhythm.toFixed(2) },
         ]} />
-        <p className="constant-note">v2 根据不同达成率使用副定数与主定数，并以五个能力维度描述谱面。</p>
       </div>
       <RadarChart title="能力维度" metrics={metrics} />
     </div>

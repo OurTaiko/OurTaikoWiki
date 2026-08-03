@@ -273,7 +273,6 @@
   .metric-cell span { color: var(--ink-soft); font-size: .69rem; }
   .metric-cell strong { margin-top: .2rem; font: 750 1.25rem var(--mono); }
   .metric-cell small { color: var(--accent); font: .58rem var(--mono); letter-spacing: .1em; }
-  .constant-note { margin-top: auto; padding: 1rem 0 .2rem; color: var(--ink-soft); font-size: .72rem; line-height: 1.7; }
   .radar-card { display: flex; min-height: 480px; padding: 1.2rem; flex-direction: column; background: var(--surface-soft); border: 1px solid var(--line); }
   .radar-card figcaption { display: flex; align-items: end; justify-content: space-between; }
   .radar-card figcaption strong { font-family: var(--display); }
