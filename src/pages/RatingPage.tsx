@@ -94,7 +94,7 @@ export function RatingPage() {
 
   const radarMetrics = useMemo<RadarMetric[]>(() => report?.summary
     .filter((item) => item.key !== 'rating')
-    .map((item) => ({ label: item.label, value: item.value, max: 15.5 })) || [], [report])
+    .map((item) => ({ label: item.label, value: item.value })) || [], [report])
 
   const currentSummary = report?.summary.find((item) => item.key === dimension)
 

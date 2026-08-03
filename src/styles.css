@@ -41,6 +41,8 @@
     --mono: "Cascadia Mono", "SFMono-Regular", monospace;
     --radar-start: rgb(197 72 62 / 60%);
     --radar-end: rgb(27 105 112 / 18%);
+    --radar-ring-a: rgb(197 72 62 / 5%);
+    --radar-ring-b: rgb(27 105 112 / 4%);
   }
 
   body {
@@ -276,11 +278,14 @@
   .radar-card figcaption { display: flex; align-items: end; justify-content: space-between; }
   .radar-card figcaption strong { font-family: var(--display); }
   .radar { width: min(100%, 350px); margin: .4rem auto 0; overflow: visible; }
+  .radar__ring-a { fill: var(--radar-ring-a); }
+  .radar__ring-b { fill: var(--radar-ring-b); }
   .radar__grid { fill: none; stroke: var(--line); stroke-width: 1; }
   .radar__axis { stroke: var(--line); stroke-width: 1; }
   .radar__label { fill: var(--ink-soft); font: 700 11px "Microsoft YaHei UI", sans-serif; }
   .radar__data { stroke: var(--accent); stroke-width: 2; }
   .radar__point { fill: var(--surface-solid); stroke: var(--accent); stroke-width: 3; }
+  .radar__value-label { fill: var(--ink); font: 700 10px var(--mono); }
   .radar-values { display: flex; flex-wrap: wrap; gap: .35rem .8rem; justify-content: center; margin-top: auto; }
   .radar-values span { display: inline-flex; align-items: center; gap: .25rem; color: var(--ink-soft); font-size: .62rem; }
   .radar-values i { width: 5px; height: 5px; background: var(--accent); border-radius: 50%; }
@@ -452,6 +457,8 @@
     --radius-small: 999px;
     --radar-start: rgb(244 229 178 / 42%);
     --radar-end: rgb(142 125 98 / 10%);
+    --radar-ring-a: rgb(244 229 178 / 6%);
+    --radar-ring-b: rgb(130 164 176 / 4%);
     background:
       radial-gradient(circle at 13% 2%, rgb(108 103 101 / 20%), transparent 28rem),
       linear-gradient(120deg, transparent 0 72%, rgb(213 189 114 / 3%) 72% 72.15%, transparent 72.15%),

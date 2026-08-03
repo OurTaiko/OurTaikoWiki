@@ -28,12 +28,12 @@ function MetricGrid({ items }: { items: { label: string; value: string; note?: s
 function V1ConstantPanel({ data }: { data?: V1Difficulty }) {
   if (!data) return <EmptyConstant version="v1" />
   const metrics: RadarMetric[] = [
-    { label: '复合处理', value: data.composite, max: 100 },
-    { label: '平均密度', value: data.avgDensity, max: 100 },
-    { label: '瞬时密度', value: data.instDensity, max: 100 },
-    { label: '流速变化', value: data.separation, max: 100 },
-    { label: 'BPM变化', value: data.bpmChange, max: 100 },
-    { label: '节奏变化', value: data.hsChange, max: 100 },
+    { label: '复合处理', value: data.composite },
+    { label: '平均密度', value: data.avgDensity },
+    { label: '瞬时密度', value: data.instDensity },
+    { label: '流速变化', value: data.separation },
+    { label: 'BPM变化', value: data.bpmChange },
+    { label: '节奏变化', value: data.hsChange },
   ]
   return (
     <div className="constant-layout">
@@ -58,11 +58,11 @@ function V1ConstantPanel({ data }: { data?: V1Difficulty }) {
 function V2ConstantPanel({ data }: { data?: V2Difficulty }) {
   if (!data) return <EmptyConstant version="v2" />
   const metrics: RadarMetric[] = [
-    { label: '体力', value: data.stamina, max: 15.5 },
-    { label: '手速', value: data.handspeed, max: 15.5 },
-    { label: '爆发', value: data.burst, max: 15.5 },
-    { label: '节奏', value: data.rhythm, max: 15.5 },
-    { label: '复合', value: data.complex, max: 15.5 },
+    { label: '体力', value: data.stamina },
+    { label: '手速', value: data.handspeed },
+    { label: '爆发', value: data.burst },
+    { label: '节奏', value: data.rhythm },
+    { label: '复合', value: data.complex },
   ]
   return (
     <div className="constant-layout">
