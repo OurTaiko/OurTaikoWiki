@@ -3,6 +3,7 @@ export const difficultyKeys = ['easy', 'normal', 'hard', 'oni', 'ura'] as const
 export type DifficultyKey = (typeof difficultyKeys)[number]
 export type ThemeId = 'archive' | 'ffxiv'
 export type SourceId = 'cn'
+export type AlgoVersion = 'v1' | 'v2'
 
 export interface Song {
   id: number

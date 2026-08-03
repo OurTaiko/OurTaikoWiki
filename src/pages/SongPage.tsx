@@ -10,8 +10,6 @@ import { ratingDimensionLabels, type RatingEntry, type RatingVersion } from '../
 import { calculateV1SongRating } from '../utils/rating-v1'
 import { calculateV2SongRating } from '../utils/rating-v2'
 
-type ConstantVersion = 'v1' | 'v2'
-
 function firstDifficulty(levels: Record<DifficultyKey, number | string | null>): DifficultyKey {
   if (levels.oni !== null) return 'oni'
   return difficultyKeys.find((key) => levels[key] !== null) || 'oni'
@@ -27,7 +25,7 @@ function MetricGrid({ items }: { items: { label: string; value: string; note?: s
   return <div className="metric-grid">{items.map((item) => <div className="metric-cell" key={item.label}><span>{item.label}</span><strong>{item.value}</strong>{item.note && <small>{item.note}</small>}</div>)}</div>
 }
 
-function V1Panel({ data }: { data?: V1Difficulty }) {
+function V1ConstantPanel({ data }: { data?: V1Difficulty }) {
   if (!data) return <EmptyConstant version="v1" />
   const metrics: RadarMetric[] = [
     { label: '复合处理', value: data.composite, max: 100 },
@@ -57,14 +55,14 @@ function V1Panel({ data }: { data?: V1Difficulty }) {
   )
 }
 
-function V2Panel({ data }: { data?: V2Difficulty }) {
+function V2ConstantPanel({ data }: { data?: V2Difficulty }) {
   if (!data) return <EmptyConstant version="v2" />
   const metrics: RadarMetric[] = [
     { label: '体力', value: data.stamina, max: 15.5 },
     { label: '手速', value: data.handspeed, max: 15.5 },
     { label: '爆发', value: data.burst, max: 15.5 },
-    { label: '复合', value: data.complex, max: 15.5 },
     { label: '节奏', value: data.rhythm, max: 15.5 },
+    { label: '复合', value: data.complex, max: 15.5 },
   ]
   return (
     <div className="constant-layout">
@@ -89,7 +87,7 @@ function V2Panel({ data }: { data?: V2Difficulty }) {
   )
 }
 
-function EmptyConstant({ version }: { version: ConstantVersion }) {
+function EmptyConstant({ version }: { version: 'v1' | 'v2' }) {
   return <div className="empty-constant"><Database /><h3>暂无 {version.toUpperCase()} 定数</h3><p>这个难度还没有进入对应的定数资料库。</p></div>
 }
 
@@ -107,7 +105,7 @@ function SingleRatingCard({ version, entry, hasScore, hasConstants }: SingleRati
   return (
     <article className={`single-rating-card panel is-${version}`}>
       <header>
-        <div><span>{version.toUpperCase()}</span><div><small>{isV1 ? 'STRUCTURE MODEL' : 'ABILITY MODEL'}</small><h3>{isV1 ? '结构算法' : '能力算法'}</h3></div></div>
+        <div><span>{version.toUpperCase()}</span><div><small>{isV1 ? 'V1 Algorithm' : 'V2 Algorithm'}</small><h3>{isV1 ? 'V1算法' : 'V2算法'}</h3></div></div>
         <Gauge aria-hidden="true" />
       </header>
       {!hasScore ? (
@@ -139,10 +137,9 @@ function SingleRatingCard({ version, entry, hasScore, hasConstants }: SingleRati
 export function SongPage() {
   const { id } = useParams()
   const songId = Number(id)
-  const { songs, loading: songsLoading, scores } = useWiki()
+  const { songs, loading: songsLoading, scores, algoVersion } = useWiki()
   const song = songs.find((item) => item.id === songId)
   const [difficulty, setDifficulty] = useState<DifficultyKey>('oni')
-  const [version, setVersion] = useState<ConstantVersion>('v1')
   const [v1, setV1] = useState<Map<number, Awaited<ReturnType<typeof loadV1Constants>> extends Map<number, infer T> ? T : never>>()
   const [v2, setV2] = useState<Awaited<ReturnType<typeof loadV2Constants>>>()
   const [constantError, setConstantError] = useState('')
@@ -176,6 +173,8 @@ export function SongPage() {
   const v2Rating = useMemo(() => score && v2Data
     ? calculateV2SongRating(v2Data, score, song?.title || `曲目 ${songId}`, difficulty)
     : null, [score, v2Data, song?.title, songId, difficulty])
+
+  const isV1 = algoVersion === 'v1'
 
   if (songsLoading) return <main className="page-shell detail-loading"><LoaderCircle className="spin" /><p>正在翻阅曲目档案…</p></main>
   if (!song) return (
@@ -219,31 +218,29 @@ export function SongPage() {
       <section className="song-rating-section">
         <div className="section-heading">
           <div><span className="eyebrow"><Sparkles size={14} /> SINGLE RATING</span><h2>单曲 Rating 详情</h2></div>
-          <p>{difficultyMeta[difficulty].label} · 同一成绩的双算法对照</p>
         </div>
         {constantLoading ? (
           <div className="song-rating-loading panel"><LoaderCircle className="spin" />正在计算单曲 Rating…</div>
         ) : constantError ? (
           <div className="song-rating-loading panel"><RotateCcw /><span>{constantError}</span></div>
         ) : (
-          <div className="single-rating-grid">
-            <SingleRatingCard version="v1" entry={v1Rating} hasScore={Boolean(score)} hasConstants={Boolean(v1Data)} />
-            <SingleRatingCard version="v2" entry={v2Rating} hasScore={Boolean(score)} hasConstants={Boolean(v2Data)} />
-          </div>
+          <SingleRatingCard
+            version={algoVersion}
+            entry={isV1 ? v1Rating : v2Rating}
+            hasScore={Boolean(score)}
+            hasConstants={isV1 ? Boolean(v1Data) : Boolean(v2Data)}
+          />
         )}
       </section>
 
       <section className="constants-section panel">
         <header className="constants-header">
           <div><span className="eyebrow"><Disc3 size={14} /> CONSTANT LAB</span><h2>{difficultyMeta[difficulty].label} · 谱面定数</h2></div>
-          <div className="version-tabs" role="tablist" aria-label="定数版本">
-            <button role="tab" aria-selected={version === 'v1'} className={version === 'v1' ? 'is-active' : ''} onClick={() => setVersion('v1')}><span>V1</span>结构定数</button>
-            <button role="tab" aria-selected={version === 'v2'} className={version === 'v2' ? 'is-active' : ''} onClick={() => setVersion('v2')}><span>V2</span>能力定数</button>
-          </div>
+          <span className="constants-algo-badge">{isV1 ? 'FumenDB定数' : '咕咕定数'}</span>
         </header>
         {constantLoading ? <div className="constant-loader"><LoaderCircle className="spin" />正在读取定数档案…</div>
           : constantError ? <div className="empty-constant"><RotateCcw /><h3>定数加载失败</h3><p>{constantError}</p></div>
-            : version === 'v1' ? <V1Panel data={v1Data} /> : <V2Panel data={v2Data} />}
+            : isV1 ? <V1ConstantPanel data={v1Data} /> : <V2ConstantPanel data={v2Data} />}
       </section>
     </main>
   )

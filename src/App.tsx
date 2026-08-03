@@ -3,6 +3,7 @@ import { Header } from './components/Header'
 import { SongsPage } from './pages/SongsPage'
 import { SongPage } from './pages/SongPage'
 import { RatingPage } from './pages/RatingPage'
+import { SettingsPage } from './pages/SettingsPage'
 
 function Layout() {
   return (
@@ -22,6 +23,7 @@ export default function App() {
         <Route path="songs" element={<SongsPage />} />
         <Route path="songs/:id" element={<SongPage />} />
         <Route path="rating" element={<RatingPage />} />
+        <Route path="settings" element={<SettingsPage />} />
         <Route path="*" element={<Navigate to="/songs" replace />} />
       </Route>
     </Routes>

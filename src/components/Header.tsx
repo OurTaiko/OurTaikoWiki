@@ -1,12 +1,11 @@
 import { useState } from 'react'
-import { BarChart3, BookOpenText, Database, Drum, Import, Menu, Palette, X } from 'lucide-react'
+import { BarChart3, BookOpenText, Drum, Import, Menu, Settings, X } from 'lucide-react'
 import { Link, NavLink } from 'react-router-dom'
-import { songSources } from '../data/sources'
 import { useWiki } from '../context/WikiContext'
 import { ImportDialog } from './ImportDialog'
 
 export function Header() {
-  const { sourceId, setSourceId, theme, setTheme, scores } = useWiki()
+  const { scores } = useWiki()
   const [importOpen, setImportOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
 
@@ -25,25 +24,10 @@ export function Header() {
             <button type="button" onClick={() => { setImportOpen(true); setMenuOpen(false) }}>
               <Import size={17} />导入成绩{scores.length > 0 && <span className="nav-count">{scores.length}</span>}
             </button>
+            <NavLink to="/settings" onClick={() => setMenuOpen(false)} className="nav-settings"><Settings size={17} />设置</NavLink>
           </nav>
 
-          <div className="header-controls">
-            <label className="compact-select source-select">
-              <Database size={16} />
-              <span className="sr-only">歌曲数据源</span>
-              <select value={sourceId} onChange={(event) => setSourceId(event.target.value as typeof sourceId)} aria-label="歌曲数据源">
-                {songSources.map((source) => <option key={source.id} value={source.id}>{source.label}</option>)}
-              </select>
-            </label>
-            <label className="compact-select theme-select">
-              <Palette size={16} />
-              <span className="sr-only">界面风格</span>
-              <select value={theme} onChange={(event) => setTheme(event.target.value as typeof theme)} aria-label="界面风格">
-                <option value="archive">和纸档案</option>
-                <option value="ffxiv">FF14 风格</option>
-              </select>
-            </label>
-          </div>
+          <div className="header-controls" />
 
           <button className="mobile-menu-button" type="button" onClick={() => setMenuOpen((value) => !value)} aria-label="切换导航" aria-expanded={menuOpen}>
             {menuOpen ? <X /> : <Menu />}

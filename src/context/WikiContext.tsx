@@ -1,12 +1,14 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { fetchSongs } from '../data/sources'
-import type { ImportedScore, Song, SourceId, ThemeId } from '../types'
+import type { AlgoVersion, ImportedScore, Song, SourceId, ThemeId } from '../types'
 
 interface WikiContextValue {
   sourceId: SourceId
   setSourceId: (sourceId: SourceId) => void
   theme: ThemeId
   setTheme: (theme: ThemeId) => void
+  algoVersion: AlgoVersion
+  setAlgoVersion: (version: AlgoVersion) => void
   songs: Song[]
   loading: boolean
   error: string
@@ -43,6 +45,9 @@ export function WikiProvider({ children }: { children: ReactNode }) {
   const [sourceId, setSourceIdState] = useState<SourceId>('cn')
   const [theme, setThemeState] = useState<ThemeId>(() =>
     localStorage.getItem('our-taiko-wiki:theme') === 'ffxiv' ? 'ffxiv' : 'archive',
+  )
+  const [algoVersion, setAlgoVersionState] = useState<AlgoVersion>(() =>
+    localStorage.getItem('our-taiko-wiki:algo') === 'v1' ? 'v1' : 'v2',
   )
   const [songs, setSongs] = useState<Song[]>(() => songCache.get(sourceId) || [])
   const [loading, setLoading] = useState(!songCache.has(sourceId))
@@ -94,6 +99,11 @@ export function WikiProvider({ children }: { children: ReactNode }) {
     },
     theme,
     setTheme: setThemeState,
+    algoVersion,
+    setAlgoVersion: (nextAlgo) => {
+      localStorage.setItem('our-taiko-wiki:algo', nextAlgo)
+      setAlgoVersionState(nextAlgo)
+    },
     songs,
     loading,
     error,
@@ -105,7 +115,7 @@ export function WikiProvider({ children }: { children: ReactNode }) {
       localStorage.setItem('our-taiko-wiki:scores', JSON.stringify(merged))
       setScores(merged)
     },
-  }), [sourceId, theme, songs, loading, error, scores])
+  }), [sourceId, theme, algoVersion, songs, loading, error, scores])
 
   return <WikiContext.Provider value={value}>{children}</WikiContext.Provider>
 }

@@ -43,7 +43,7 @@ export const DIFFICULTY_KEYS: DifficultyKey[] = ['easy', 'normal', 'hard', 'oni'
 export const ratingDimensionLabels: Record<RatingVersion, Array<[RatingDimensionKey, string]>> = {
   v1: [
     ['rating', 'Rating'],
-    ['power', '打鼓力'],
+    ['power', '大歌力'],
     ['stamina', '体力'],
     ['speed', '手速'],
     ['accuracy', '精度'],
