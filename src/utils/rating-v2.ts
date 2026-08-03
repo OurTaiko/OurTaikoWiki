@@ -36,28 +36,6 @@ function flattenDatabase(data: V2SongMap): FlatV2Song[] {
   }))
 }
 
-function calcLnRating(rating: number, dimensionValue: number, accuracy: number): number {
-  const base = Math.min(rating, dimensionValue)
-  const upper = Math.max(rating, dimensionValue)
-  if (dimensionValue <= rating) return base + Math.min(accuracy / dimensionValue, 1) * Math.log(upper - base + 1)
-
-  const rt1 = base + Math.min(accuracy / dimensionValue, 1) * Math.log(upper - base + 1)
-  const rt2 = Math.sqrt(base * upper)
-  let w1: number
-  let w2: number
-  if (accuracy <= rating) {
-    w1 = 1
-    w2 = 0
-  } else if (accuracy >= dimensionValue) {
-    w1 = 0
-    w2 = 1
-  } else {
-    w1 = (accuracy - rating) / (dimensionValue - rating)
-    w2 = (dimensionValue - accuracy) / (dimensionValue - rating)
-  }
-  return rt1 * w1 + rt2 * w2
-}
-
 function calculateValues(song: FlatV2Song, accuracyPer: number, badPer: number): RatingEntry['values'] | null {
   if (accuracyPer < 0 || accuracyPer > 1 || badPer < 0 || badPer > 1) return null
   const accuracy = calcY(accuracyPer)
@@ -74,7 +52,7 @@ function calculateValues(song: FlatV2Song, accuracyPer: number, badPer: number):
   else if (accuracyPer <= 0.95) rating = rt90 + (rt95 - rt90) * (initialRating - rt90) / (rt95Ref - rt90)
   else rating = rt95 + (rt100 - rt95) * (initialRating - rt95) / (rt100Ref - rt95)
 
-  const accuracyRating = calcLnRating(rating, accuracy, accuracy)
+  const accuracyRating = Math.min(rating, accuracy) + Math.log(Math.max(rating, accuracy) - Math.min(rating, accuracy) + 1)
   const stamina = calcSingleRating(song.stamina, accuracy)
   const speed = calcSingleRating(song.handspeed, accuracy)
   const burstBase = calcSingleRating(song.burst, accuracy)
