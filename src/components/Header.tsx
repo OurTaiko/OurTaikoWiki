@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { BookOpenText, Database, Drum, Import, Menu, Palette, X } from 'lucide-react'
+import { BarChart3, BookOpenText, Database, Drum, Import, Menu, Palette, X } from 'lucide-react'
 import { Link, NavLink } from 'react-router-dom'
 import { songSources } from '../data/sources'
 import { useWiki } from '../context/WikiContext'
@@ -21,6 +21,7 @@ export function Header() {
 
           <nav className={menuOpen ? 'main-nav is-open' : 'main-nav'} aria-label="主导航">
             <NavLink to="/songs" onClick={() => setMenuOpen(false)}><BookOpenText size={17} />全部歌曲</NavLink>
+            <NavLink to="/rating" onClick={() => setMenuOpen(false)}><BarChart3 size={17} />Rating</NavLink>
             <button type="button" onClick={() => { setImportOpen(true); setMenuOpen(false) }}>
               <Import size={17} />导入成绩{scores.length > 0 && <span className="nav-count">{scores.length}</span>}
             </button>

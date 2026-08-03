@@ -1,17 +1,26 @@
 import { useEffect, useMemo, useState } from 'react'
-import { ArrowLeft, CalendarDays, ChevronRight, Database, Disc3, Hash, Layers3, LoaderCircle, Music2, RotateCcw, Trophy } from 'lucide-react'
+import { ArrowLeft, CalendarDays, ChevronRight, Database, Disc3, Gauge, Hash, Layers3, LoaderCircle, Music2, RotateCcw, Sparkles, Trophy } from 'lucide-react'
 import { Link, useParams } from 'react-router-dom'
 import { DifficultyBadge, difficultyMeta } from '../components/DifficultyBadge'
 import { RadarChart, type RadarMetric } from '../components/RadarChart'
 import { useWiki } from '../context/WikiContext'
 import { loadV1Constants, loadV2Constants } from '../data/constants'
-import { difficultyKeys, type DifficultyKey, type V1Difficulty, type V2Difficulty } from '../types'
+import { difficultyKeys, type DifficultyKey, type V1Difficulty, type V2Difficulty, type V2DifficultyKey } from '../types'
+import { ratingDimensionLabels, type RatingEntry, type RatingVersion } from '../utils/rating'
+import { calculateV1SongRating } from '../utils/rating-v1'
+import { calculateV2SongRating } from '../utils/rating-v2'
 
 type ConstantVersion = 'v1' | 'v2'
 
 function firstDifficulty(levels: Record<DifficultyKey, number | string | null>): DifficultyKey {
   if (levels.oni !== null) return 'oni'
   return difficultyKeys.find((key) => levels[key] !== null) || 'oni'
+}
+
+function v2DifficultyKey(key: DifficultyKey): V2DifficultyKey | undefined {
+  if (key === 'hard' || key === 'oni') return key
+  if (key === 'ura') return 'edit'
+  return undefined
 }
 
 function MetricGrid({ items }: { items: { label: string; value: string; note?: string }[] }) {
@@ -84,6 +93,49 @@ function EmptyConstant({ version }: { version: ConstantVersion }) {
   return <div className="empty-constant"><Database /><h3>暂无 {version.toUpperCase()} 定数</h3><p>这个难度还没有进入对应的定数资料库。</p></div>
 }
 
+interface SingleRatingCardProps {
+  version: RatingVersion
+  entry: RatingEntry | null
+  hasScore: boolean
+  hasConstants: boolean
+}
+
+function SingleRatingCard({ version, entry, hasScore, hasConstants }: SingleRatingCardProps) {
+  const isV1 = version === 'v1'
+  const dimensions = ratingDimensionLabels[version].slice(1)
+
+  return (
+    <article className={`single-rating-card panel is-${version}`}>
+      <header>
+        <div><span>{version.toUpperCase()}</span><div><small>{isV1 ? 'STRUCTURE MODEL' : 'ABILITY MODEL'}</small><h3>{isV1 ? '结构算法' : '能力算法'}</h3></div></div>
+        <Gauge aria-hidden="true" />
+      </header>
+      {!hasScore ? (
+        <div className="single-rating-card__empty"><strong>尚未导入这个谱面的成绩</strong><p>导入最佳成绩后即可计算单曲 Rating。</p></div>
+      ) : !hasConstants ? (
+        <div className="single-rating-card__empty"><strong>暂无 {version.toUpperCase()} 定数</strong><p>这个谱面暂时无法使用该版本计算。</p></div>
+      ) : !entry ? (
+        <div className="single-rating-card__empty"><strong>成绩不在计算区间</strong><p>{isV1 ? 'v1 需要综合良率达到 75%。' : '请检查成绩判定数与总音符数。'}</p></div>
+      ) : (
+        <>
+          <div className="single-rating-card__score">
+            <div><span>SINGLE RATING</span><strong>{entry.values.rating.toFixed(2)}</strong></div>
+            <div><span>综合良率</span><b>{(entry.accuracy * 100).toFixed(2)}%</b><small>良 {entry.great} · 可 {entry.good} · 不可 {entry.bad}</small></div>
+          </div>
+          <div className="single-rating-card__dimensions">
+            {dimensions.map(([key, label]) => (
+              <div key={key}><span>{label}</span><strong>{entry.values[key]?.toFixed(2) ?? '—'}</strong></div>
+            ))}
+          </div>
+          <footer>
+            {isV1 ? '综合良率 = (良 + 可 ÷ 2) ÷ 总音符数' : `不可率 ${((entry.bad / entry.totalNotes) * 100).toFixed(2)}% · 仅修正复合维度`}
+          </footer>
+        </>
+      )}
+    </article>
+  )
+}
+
 export function SongPage() {
   const { id } = useParams()
   const songId = Number(id)
@@ -116,7 +168,14 @@ export function SongPage() {
 
   const score = useMemo(() => scores.find((item) => item.id === songId && item.difficulty === difficultyMeta[difficulty].index), [scores, songId, difficulty])
   const v1Data = v1?.get(songId)?.constants[difficulty]
-  const v2Data = v2?.[String(songId)]?.[difficulty]
+  const v2Key = v2DifficultyKey(difficulty)
+  const v2Data = v2Key ? v2?.[String(songId)]?.[v2Key] : undefined
+  const v1Rating = useMemo(() => score && v1Data
+    ? calculateV1SongRating(v1Data, score, song?.title || `曲目 ${songId}`, difficulty)
+    : null, [score, v1Data, song?.title, songId, difficulty])
+  const v2Rating = useMemo(() => score && v2Data
+    ? calculateV2SongRating(v2Data, score, song?.title || `曲目 ${songId}`, difficulty)
+    : null, [score, v2Data, song?.title, songId, difficulty])
 
   if (songsLoading) return <main className="page-shell detail-loading"><LoaderCircle className="spin" /><p>正在翻阅曲目档案…</p></main>
   if (!song) return (
@@ -156,6 +215,23 @@ export function SongPage() {
           <div><span>良 <b>{score.good}</b></span><span>可 <b>{score.ok}</b></span><span>不可 <b>{score.bad}</b></span><span>最大连段 <b>{score.combo}</b></span><span>游玩 <b>{score.plays}</b></span></div>
         </section>
       )}
+
+      <section className="song-rating-section">
+        <div className="section-heading">
+          <div><span className="eyebrow"><Sparkles size={14} /> SINGLE RATING</span><h2>单曲 Rating 详情</h2></div>
+          <p>{difficultyMeta[difficulty].label} · 同一成绩的双算法对照</p>
+        </div>
+        {constantLoading ? (
+          <div className="song-rating-loading panel"><LoaderCircle className="spin" />正在计算单曲 Rating…</div>
+        ) : constantError ? (
+          <div className="song-rating-loading panel"><RotateCcw /><span>{constantError}</span></div>
+        ) : (
+          <div className="single-rating-grid">
+            <SingleRatingCard version="v1" entry={v1Rating} hasScore={Boolean(score)} hasConstants={Boolean(v1Data)} />
+            <SingleRatingCard version="v2" entry={v2Rating} hasScore={Boolean(score)} hasConstants={Boolean(v2Data)} />
+          </div>
+        )}
+      </section>
 
       <section className="constants-section panel">
         <header className="constants-header">

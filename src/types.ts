@@ -46,7 +46,8 @@ export interface V2Difficulty {
   totalNotes: number
 }
 
-export type V2SongMap = Record<string, Partial<Record<DifficultyKey, V2Difficulty>>>
+export type V2DifficultyKey = 'hard' | 'oni' | 'edit'
+export type V2SongMap = Record<string, Partial<Record<V2DifficultyKey, V2Difficulty>>>
 
 export interface ImportedScore {
   id: number
