@@ -193,6 +193,7 @@
   .record-art__disc::after { position: absolute; width: 9px; height: 9px; background: var(--surface-solid); border-radius: 50%; content: ""; }
   .record-art__disc span { z-index: 1; margin-top: 95px; color: var(--page-bg); font: 700 .66rem var(--mono); letter-spacing: .12em; }
   .record-art > i { position: absolute; top: 28px; right: 25px; width: 5px; height: 145px; background: var(--gold); border-radius: 4px; box-shadow: 7px 125px 0 6px var(--gold); transform: rotate(18deg); transform-origin: top; }
+  .record-art__cover { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
   .song-identity__copy { z-index: 1; align-self: center; }
   .song-identity__copy h1 { max-width: 720px; margin-top: 1.1rem; font: 700 clamp(2rem, 4vw, 3.8rem)/1.12 var(--display); letter-spacing: -.04em; }
   .song-jp { margin-top: .65rem; color: var(--accent); font-family: var(--display); font-size: 1rem; }

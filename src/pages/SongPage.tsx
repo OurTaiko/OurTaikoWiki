@@ -138,6 +138,7 @@ export function SongPage() {
   const { songs, loading: songsLoading, scores, algoVersion } = useWiki()
   const song = songs.find((item) => item.id === songId)
   const [difficulty, setDifficulty] = useState<DifficultyKey>('oni')
+  const [coverError, setCoverError] = useState(false)
   const [v1, setV1] = useState<Map<number, Awaited<ReturnType<typeof loadV1Constants>> extends Map<number, infer T> ? T : never>>()
   const [v2, setV2] = useState<Awaited<ReturnType<typeof loadV2Constants>>>()
   const [constantError, setConstantError] = useState('')
@@ -184,7 +185,18 @@ export function SongPage() {
       <nav className="breadcrumbs" aria-label="面包屑"><Link to="/songs">全部歌曲</Link><ChevronRight /><span>{song.title}</span></nav>
 
       <section className="song-identity panel">
-        <div className="record-art" aria-hidden="true"><div className="record-art__disc"><span>{String(song.id).padStart(4, '0')}</span></div><i /></div>
+        <div className="record-art" aria-hidden="true">
+          {coverError ? (
+            <><div className="record-art__disc"><span>{String(song.id).padStart(4, '0')}</span></div><i /></>
+          ) : (
+            <img
+              className="record-art__cover"
+              src={`https://viewer.sakura-bot.cn/api/content/covers/${song.id}`}
+              alt=""
+              onError={() => setCoverError(true)}
+            />
+          )}
+        </div>
         <div className="song-identity__copy">
           <span className="category-tag">{song.category}</span>
           <h1>{song.title}</h1>
