@@ -391,7 +391,6 @@ export function ChartPreview({ songId, preferredDifficulty }: ChartPreviewProps)
           <>
             <div className="chart-preview__stat"><span>音符</span><strong>{NOTE_LABELS[info.type] ?? info.type}</strong></div>
             <div className="chart-preview__stat"><span>位置</span><strong>{info.location.barIndex + 1} 小节 · {info.location.charIndex + 1} 列</strong></div>
-            <div className="chart-preview__stat"><span>序号</span><strong>{info.ordinal !== undefined ? `第 ${info.ordinal} 个` : '—'}</strong></div>
             <div className="chart-preview__stat"><span>BPM</span><strong>{formatBpm(info.bpm)}</strong></div>
             <div className="chart-preview__stat"><span>滚动速度</span><strong>{formatScroll(info.scroll)}</strong></div>
             {hasBranches && info.location.branch && (
