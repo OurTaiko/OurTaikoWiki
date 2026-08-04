@@ -92,24 +92,7 @@
   .main-nav a:hover, .main-nav button:hover, .main-nav a.active { color: var(--accent); background: var(--accent-soft); }
   .nav-count { display: grid; min-width: 1.25rem; height: 1.25rem; padding-inline: .3rem; place-items: center; color: #fff; background: var(--accent); border-radius: 50px; font: 700 .68rem var(--mono); }
   .header-controls { display: flex; gap: .5rem; }
-  .compact-select { display: flex; align-items: center; gap: .35rem; height: 38px; padding-inline: .65rem .35rem; color: var(--ink-soft); background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-small); }
-  .compact-select select { max-width: 10rem; color: var(--ink); background: transparent; border: 0; font-size: .78rem; font-weight: 700; }
-  .compact-select select option { color: #242424; background: #fff; }
   .mobile-menu-button { display: none; padding: .5rem; color: var(--ink); background: transparent; border: 0; }
-
-  .hero { position: relative; display: grid; grid-template-columns: 1fr 310px; gap: 6rem; align-items: center; min-height: 400px; padding: 5.2rem 3rem 4rem; border-bottom: 1px solid var(--line); }
-  .hero::before { position: absolute; top: 2rem; left: 0; width: 46px; height: 2px; background: var(--accent); box-shadow: 55px 0 var(--line-strong); content: ""; }
-  .hero__copy h1 { margin-top: 1.2rem; font: 700 clamp(2.65rem, 6vw, 5rem)/1.08 var(--display); letter-spacing: -.045em; }
-  .hero__copy h1 i { color: var(--accent); font-style: normal; }
-  .hero__copy p { max-width: 650px; margin-top: 1.5rem; color: var(--ink-soft); font-size: 1rem; line-height: 1.85; }
-  .hero__stat { position: relative; display: flex; min-height: 210px; padding: 2.1rem 2rem; flex-direction: column; justify-content: center; background: var(--ink); color: var(--page-bg); box-shadow: 16px 16px 0 var(--accent-soft); }
-  .hero__stat::before, .hero__stat::after { position: absolute; width: 11px; height: 11px; border-color: var(--gold); content: ""; }
-  .hero__stat::before { top: 10px; left: 10px; border-top: 1px solid; border-left: 1px solid; }
-  .hero__stat::after { right: 10px; bottom: 10px; border-right: 1px solid; border-bottom: 1px solid; }
-  .hero__stat > span { color: rgb(243 239 229 / 66%); font-size: .8rem; letter-spacing: .16em; }
-  .hero__stat strong { margin-block: .25rem; color: #fff; font: 800 4.8rem/.95 var(--mono); letter-spacing: -.08em; }
-  .hero__stat small { color: var(--gold); font: 700 .75rem var(--mono); letter-spacing: .22em; }
-  .hero__stamp { position: absolute; top: -24px; right: -20px; display: grid; width: 58px; height: 84px; padding-block: .35rem; place-items: center; color: #fff; background: var(--accent); border: 2px solid #f6dcd4; outline: 2px solid var(--accent); font: 700 .82rem/1.1 var(--display); }
 
   .catalog-toolbar { position: relative; z-index: 2; margin-top: 1.2rem; padding: 1.2rem; }
   .search-box { display: flex; align-items: center; gap: .8rem; padding: .85rem 1rem; background: var(--surface-solid); border: 1px solid var(--line); }
@@ -248,7 +231,6 @@
   .personal-score b { font-family: var(--mono); }
 
   .song-rating-section { padding: 1.4rem 0 2.6rem; }
-  .single-rating-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
   .single-rating-card { --model-accent: var(--accent); position: relative; min-width: 0; padding: 1.25rem; overflow: hidden; animation: rating-in 420ms ease both; }
   .single-rating-card.is-v2 { --model-accent: var(--secondary); animation-delay: 70ms; }
   .single-rating-card::after { position: absolute; top: -75px; right: -70px; width: 180px; height: 180px; border: 20px solid color-mix(in srgb, var(--model-accent) 8%, transparent); border-radius: 50%; content: ""; pointer-events: none; }
@@ -278,10 +260,6 @@
 
   .constants-section { margin-bottom: 4rem; padding: 1.8rem; }
   .constants-header { display: flex; align-items: end; justify-content: space-between; gap: 2rem; padding-bottom: 1.2rem; border-bottom: 1px solid var(--line); }
-  .version-tabs { display: flex; padding: 3px; background: var(--surface-soft); border: 1px solid var(--line); }
-  .version-tabs button { display: flex; min-width: 130px; padding: .6rem .8rem; align-items: center; gap: .5rem; color: var(--ink-soft); background: transparent; border: 0; font-size: .76rem; }
-  .version-tabs button span { font: 800 .78rem var(--mono); }
-  .version-tabs button.is-active { color: #fff; background: var(--accent); }
   .constant-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(360px, 470px); gap: 2.4rem; padding-top: 2rem; }
   .constant-copy { display: flex; min-width: 0; flex-direction: column; }
   .constant-hero { position: relative; display: grid; min-height: 170px; padding: 1.5rem; align-content: center; overflow: hidden; color: #fff; background: var(--ink); }
@@ -314,10 +292,6 @@
   .radar__data { stroke: var(--accent); stroke-width: 2; }
   .radar__point { fill: var(--surface-solid); stroke: var(--accent); stroke-width: 3; }
   .radar__value-label { fill: var(--ink); font: 700 10px var(--mono); }
-  .radar-values { display: flex; flex-wrap: wrap; gap: .35rem .8rem; justify-content: center; margin-top: auto; }
-  .radar-values span { display: inline-flex; align-items: center; gap: .25rem; color: var(--ink-soft); font-size: .62rem; }
-  .radar-values i { width: 5px; height: 5px; background: var(--accent); border-radius: 50%; }
-  .radar-values b { color: var(--ink); font-family: var(--mono); }
   .constant-loader, .empty-constant { display: grid; min-height: 430px; place-items: center; align-content: center; color: var(--ink-soft); text-align: center; }
   .constant-loader svg, .empty-constant > svg { width: 38px; height: 38px; margin-bottom: .8rem; color: var(--accent); }
   .empty-constant h3 { color: var(--ink); font: 700 1.35rem var(--display); }
@@ -349,25 +323,6 @@
   .import-submit { width: 100%; }
 
   .rating-page { padding-bottom: 4rem; }
-  .rating-hero { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 4rem; align-items: center; min-height: 390px; padding: 4.6rem 2rem 3.5rem; border-bottom: 1px solid var(--line); }
-  .rating-hero::before { position: absolute; top: 2rem; left: 0; width: 46px; height: 2px; background: var(--accent); box-shadow: 55px 0 var(--line-strong); content: ""; }
-  .rating-hero__copy h1 { margin-top: 1.15rem; font: 700 clamp(2.6rem, 5.5vw, 4.8rem)/1.08 var(--display); letter-spacing: -.045em; }
-  .rating-hero__copy h1 i { color: var(--accent); font-style: normal; }
-  .rating-hero__copy > p { max-width: 670px; margin-top: 1.35rem; color: var(--ink-soft); line-height: 1.85; }
-  .rating-hero__actions { display: flex; flex-wrap: wrap; gap: 1.2rem; align-items: center; margin-top: 1.6rem; }
-  .rating-hero__actions > span { display: inline-flex; gap: .4rem; align-items: center; color: var(--ink-soft); font-size: .72rem; }
-  .rating-hero__actions > span svg { color: var(--secondary); }
-  .rating-version-switch { position: relative; display: flex; flex-direction: column; min-height: 220px; padding: 3.7rem 1.1rem 0; overflow: hidden; background: var(--ink); border-color: var(--ink); box-shadow: 14px 14px 0 var(--accent-soft); }
-  .rating-version-switch::after { position: absolute; right: -55px; bottom: -90px; width: 210px; height: 210px; border: 24px solid rgb(255 255 255 / 5%); border-radius: 50%; content: ""; pointer-events: none; }
-  .rating-version-switch__label { position: absolute; top: 1.25rem; left: 1.25rem; color: rgb(255 255 255 / 54%); font: 700 .68rem var(--mono); letter-spacing: .18em; }
-
-  .rating-algorithm-note { display: grid; grid-template-columns: 1fr minmax(320px, .8fr); gap: 2rem; align-items: center; margin: 1.4rem 0 1.2rem; padding: 1.4rem 1.6rem; }
-  .rating-algorithm-note h2 { margin-top: .45rem; font: 700 1.45rem var(--display); }
-  .rating-algorithm-note p { margin-top: .35rem; color: var(--ink-soft); font-size: .78rem; line-height: 1.65; }
-  .rating-formula { display: grid; grid-template-columns: auto 1fr; gap: .2rem .7rem; padding: .8rem 1rem; color: var(--secondary); background: color-mix(in srgb, var(--secondary) 8%, transparent); border-left: 2px solid var(--secondary); }
-  .rating-formula svg { grid-row: span 2; align-self: center; }
-  .rating-formula span { color: var(--ink-soft); font-size: .65rem; }
-  .rating-formula strong { color: var(--ink); font-size: .78rem; }
 
   .rating-state { display: grid; min-height: 360px; margin-top: 1.2rem; padding: 3rem; place-items: center; align-content: center; text-align: center; }
   .rating-state > svg { width: 40px; height: 40px; margin-bottom: .8rem; color: var(--accent); }
@@ -436,12 +391,6 @@
   .site-footer span { color: var(--ink); font: 800 .7rem var(--mono); letter-spacing: .16em; }
 
   .constants-algo-badge { display: inline-flex; padding: .48rem .75rem; color: var(--accent-deep); background: var(--accent-soft); border-left: 2px solid var(--accent); font: 700 .72rem var(--mono); letter-spacing: .06em; }
-
-  .rating-current-algo { position: relative; z-index: 1; display: flex; flex: 1; padding: 1rem; flex-direction: column; align-items: center; justify-content: center; color: #fff; }
-  .rating-current-algo b { font: 800 3.5rem/1 var(--mono); letter-spacing: -.08em; }
-  .rating-current-algo span { margin-top: .5rem; font-size: .78rem; letter-spacing: .12em; color: rgb(255 255 255 / 62%); }
-  .rating-algo-link { position: relative; z-index: 1; display: flex; padding: .65rem; align-items: center; justify-content: center; color: var(--gold); border-top: 1px solid rgb(255 255 255 / 16%); font-size: .7rem; letter-spacing: .08em; transition: background 140ms; }
-  .rating-algo-link:hover { background: rgb(255 255 255 / 6%); }
 
   .settings-page { padding-bottom: 4rem; }
   .settings-hero { padding: 3.8rem 0 2.2rem; border-bottom: 1px solid var(--line); }
@@ -516,19 +465,13 @@
     border-color: #777;
     box-shadow: inset 0 1px rgb(255 255 255 / 13%);
   }
-  body[data-theme="ffxiv"] .compact-select select { color: var(--ink); }
   body[data-theme="ffxiv"] .main-nav a:hover,
   body[data-theme="ffxiv"] .main-nav button:hover,
   body[data-theme="ffxiv"] .main-nav a.active { color: var(--gold); background: rgb(244 229 178 / 8%); }
-  body[data-theme="ffxiv"] .hero__stat,
   body[data-theme="ffxiv"] .constant-hero,
   body[data-theme="ffxiv"] .v2-constants,
-  body[data-theme="ffxiv"] .rating-version-switch,
   body[data-theme="ffxiv"] .rating-total { background: #292827; border: 1px solid var(--line); }
-  body[data-theme="ffxiv"] .hero__stat { box-shadow: 8px 8px 0 rgb(213 189 114 / 13%); }
-  body[data-theme="ffxiv"] .hero__stamp { color: #2d2b28; background: var(--accent); border-color: #514b40; outline-color: var(--accent); }
   body[data-theme="ffxiv"] .category-scroll button.is-active,
-  body[data-theme="ffxiv"] .version-tabs button.is-active,
   body[data-theme="ffxiv"] .v2-constants .is-main { color: #302e29; background: var(--accent); }
   body[data-theme="ffxiv"] .category-tag { color: var(--gold); background: rgb(244 229 178 / 8%); }
   body[data-theme="ffxiv"] .song-card::after { box-shadow: inset 0 0 0 14px #393735, inset 0 0 0 15px var(--line); }
@@ -557,13 +500,10 @@
     .site-header__inner { grid-template-columns: auto 1fr auto; gap: .8rem; }
     .main-nav { justify-content: flex-start; }
     .main-nav a, .main-nav button { padding-inline: .65rem; font-size: .8rem; }
-    .theme-select { display: none; }
-    .hero { grid-template-columns: 1fr 240px; gap: 3rem; padding-inline: 1.5rem; }
     .song-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .song-identity { grid-template-columns: 200px 1fr; }
     .constant-layout { grid-template-columns: 1fr; }
     .radar-card { min-height: 450px; }
-    .rating-hero { grid-template-columns: minmax(0, 1fr) 300px; gap: 2rem; padding-inline: 1rem; }
     .rating-overview { grid-template-columns: 1fr; }
     .rating-overview > .radar-card { min-height: 460px; }
   }
@@ -579,11 +519,6 @@
     .main-nav.is-open { display: flex; }
     .main-nav a, .main-nav button { justify-content: flex-start; }
     body[data-theme="ffxiv"] .main-nav { background: #303030; border-color: var(--line); }
-    .hero { grid-template-columns: minmax(0, 1fr); gap: 2rem; min-height: auto; padding: 4.2rem 0 3rem; }
-    .hero__copy { width: calc(100vw - 24px); min-width: 0; overflow: hidden; }
-    .hero__copy h1 { max-width: 100%; font-size: clamp(2.2rem, 11.5vw, 3.2rem); line-height: 1.13; overflow-wrap: anywhere; }
-    .hero__stat { min-height: 150px; margin-right: 12px; padding: 1.5rem; }
-    .hero__stat strong { font-size: 3.8rem; }
     .catalog-toolbar { padding: .8rem; }
     .toolbar-row { grid-template-columns: minmax(0, 1fr); min-width: 0; }
     .category-scroll { min-width: 0; }
@@ -600,19 +535,13 @@
     button.difficulty-badge { width: calc((100vw - 48px) / 5); height: 50px; grid-template-columns: 20px 1fr; }
     .personal-score { grid-template-columns: 1fr; }
     .personal-score > div:last-child { justify-content: start; }
-    .single-rating-grid { grid-template-columns: 1fr; }
     .constants-section { padding: 1rem; }
     .constants-header { align-items: stretch; flex-direction: column; }
-    .version-tabs button { min-width: 0; flex: 1; justify-content: center; }
     .constant-layout { gap: 1.2rem; }
     .metric-grid { grid-template-columns: repeat(2, 1fr); }
     .radar-card { min-height: 400px; padding: .75rem; }
     .site-footer { padding-block: 1.5rem; align-items: flex-start; flex-direction: column; justify-content: center; gap: .5rem; }
     .rating-page { padding-bottom: 2.5rem; }
-    .rating-hero { grid-template-columns: 1fr; gap: 2rem; min-height: auto; padding: 4.2rem 0 3rem; }
-    .rating-hero__copy h1 { font-size: clamp(2.2rem, 11vw, 3.2rem); overflow-wrap: anywhere; }
-    .rating-version-switch { min-height: 190px; margin-right: 10px; }
-    .rating-algorithm-note { grid-template-columns: 1fr; padding: 1rem; }
     .rating-scoreboard { grid-template-columns: 1fr; }
     .rating-total { min-height: 175px; }
     .rating-dimension-nav { grid-template-columns: repeat(4, 1fr); }
@@ -628,7 +557,6 @@
   @media (max-width: 420px) {
     .brand b { font-size: .72rem; }
     .brand em { font-size: .85rem; }
-    .hero__copy p { width: min(20rem, calc(100vw - 24px)); max-width: 100%; font-size: .9rem; overflow-wrap: anywhere; word-break: break-all; }
     .search-box { padding-inline: .7rem; }
     .song-card__levels { gap: .2rem; }
     .difficulty-badge { width: 48px; }
@@ -640,7 +568,6 @@
     .single-rating-card__score { grid-template-columns: 1fr; }
     .single-rating-card__score > div + div { border-top: 1px solid rgb(255 255 255 / 14%); border-left: 0; }
     .single-rating-card__dimensions { grid-template-columns: repeat(2, 1fr); }
-    .rating-hero__actions { align-items: flex-start; flex-direction: column; }
     .rating-dimensions { grid-template-columns: 1fr; }
     .rating-dimensions button { min-height: 64px; }
     .rating-dimension-nav { grid-template-columns: repeat(2, 1fr); }
