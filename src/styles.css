@@ -108,6 +108,9 @@
   .category-scroll button span { margin-left: .25rem; opacity: .62; font: .68rem var(--mono); }
   .sort-select { display: flex; align-items: center; gap: .4rem; padding-left: .75rem; color: var(--ink-soft); border-left: 1px solid var(--line); font-size: .76rem; font-weight: 700; }
   .sort-select select { padding: .45rem 1.8rem .45rem .5rem; color: var(--ink); background: var(--surface-solid); border: 1px solid var(--line); }
+  .sort-direction { display: grid; width: 32px; height: 32px; padding: 0; place-items: center; color: var(--ink-soft); background: var(--surface-solid); border: 1px solid var(--line); border-radius: var(--radius-small); transition: color 140ms ease, border-color 140ms ease; }
+  .sort-direction svg { width: 15px; }
+  .sort-direction:hover, .sort-direction.is-reversed { color: var(--accent); border-color: var(--accent); }
   .catalog-meta { display: flex; align-items: center; justify-content: space-between; padding: 1.5rem .1rem 1rem; color: var(--ink-soft); font-size: .79rem; }
   .catalog-meta span { display: inline-flex; align-items: center; gap: .4rem; }
   .catalog-meta b { color: var(--ink); }
@@ -457,6 +460,7 @@
   body[data-theme="ffxiv"] .compact-select,
   body[data-theme="ffxiv"] .search-box,
   body[data-theme="ffxiv"] .sort-select select,
+  body[data-theme="ffxiv"] .sort-direction,
   body[data-theme="ffxiv"] .pagination button,
   body[data-theme="ffxiv"] .icon-button,
   body[data-theme="ffxiv"] .import-form input,

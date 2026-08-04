@@ -4,3 +4,4 @@ dist
 *.local
 *.log
 .claude/
+.pnpm-store/

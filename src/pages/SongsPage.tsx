@@ -1,10 +1,10 @@
 import { useDeferredValue, useEffect, useMemo, useState } from 'react'
-import { ChevronLeft, ChevronRight, Database, RefreshCw, Search, SlidersHorizontal } from 'lucide-react'
+import { ArrowDown, ArrowUp, ChevronLeft, ChevronRight, Database, RefreshCw, Search, SlidersHorizontal } from 'lucide-react'
 import { SongCard } from '../components/SongCard'
 import { useWiki } from '../context/WikiContext'
 import type { Song } from '../types'
 
-type SortMode = 'source' | 'title' | 'oni-desc' | 'newest'
+type SortMode = 'id' | 'openDay' | 'oni' | 'title'
 const PAGE_SIZE = 24
 
 function dateValue(value: string) {
@@ -13,12 +13,19 @@ function dateValue(value: string) {
   return year && month && day ? new Date(year, month - 1, day).getTime() : new Date(value).getTime() || 0
 }
 
-function compareSongs(mode: SortMode) {
+function compareSongs(mode: SortMode, reverse: boolean) {
   return (a: Song, b: Song) => {
-    if (mode === 'title') return a.title.localeCompare(b.title, 'zh-CN')
-    if (mode === 'oni-desc') return Number(b.levels.oni || 0) - Number(a.levels.oni || 0) || b.sort - a.sort
-    if (mode === 'newest') return dateValue(b.openDay) - dateValue(a.openDay) || b.sort - a.sort
-    return b.sort - a.sort
+    let result = 0
+    if (mode === 'title') {
+      result = a.title.localeCompare(b.title, 'zh-CN') || a.id - b.id
+    } else if (mode === 'oni') {
+      result = Number(b.levels.oni || 0) - Number(a.levels.oni || 0) || b.id - a.id
+    } else if (mode === 'openDay') {
+      result = dateValue(b.openDay) - dateValue(a.openDay) || b.id - a.id
+    } else {
+      result = a.id - b.id
+    }
+    return reverse ? -result : result
   }
 }
 
@@ -27,7 +34,8 @@ export function SongsPage() {
   const [query, setQuery] = useState('')
   const deferredQuery = useDeferredValue(query.trim().toLocaleLowerCase())
   const [category, setCategory] = useState('全部')
-  const [sort, setSort] = useState<SortMode>('source')
+  const [sort, setSort] = useState<SortMode>('id')
+  const [reverse, setReverse] = useState(false)
   const [page, setPage] = useState(1)
 
   const categories = useMemo(() => {
@@ -43,14 +51,14 @@ export function SongsPage() {
       return [song.title, song.titleJp, song.subtitle, String(song.id)]
         .some((value) => value.toLocaleLowerCase().includes(deferredQuery))
     })
-    .sort(compareSongs(sort)), [songs, category, deferredQuery, sort])
+    .sort(compareSongs(sort, reverse)), [songs, category, deferredQuery, sort, reverse])
 
   const totalPages = Math.max(1, Math.ceil(filteredSongs.length / PAGE_SIZE))
   const visibleSongs = filteredSongs.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
   useEffect(() => {
     setPage(1)
-  }, [category, deferredQuery, sort])
+  }, [category, deferredQuery, sort, reverse])
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -72,12 +80,23 @@ export function SongsPage() {
             ))}
           </div>
           <label className="sort-select"><SlidersHorizontal size={16} /><span>排序</span>
-            <select value={sort} onChange={(event) => setSort(event.target.value as SortMode)}>
-              <option value="source">资料库顺序</option>
-              <option value="newest">最近上线</option>
-              <option value="oni-desc">魔王星级</option>
-              <option value="title">曲名 A—Z</option>
+            <select value={sort} onChange={(event) => {
+              setSort(event.target.value as SortMode)
+              setReverse(false)
+            }}>
+              <option value="id">曲目 ID</option>
+              <option value="openDay">上线时间</option>
+              <option value="oni">魔王星级</option>
+              <option value="title">曲名</option>
             </select>
+            <button
+              type="button"
+              className={`sort-direction${reverse ? ' is-reversed' : ''}`}
+              onClick={() => setReverse((value) => !value)}
+              aria-label="切换排序方向"
+            >
+              {reverse ? <ArrowUp /> : <ArrowDown />}
+            </button>
           </label>
         </div>
       </section>
