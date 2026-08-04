@@ -4,6 +4,7 @@ export interface RadarMetric {
   label: string
   value: number
   max?: number
+  min?: number
 }
 
 interface RadarChartProps {
@@ -21,15 +22,14 @@ function pointsFor(metrics: RadarMetric[], ratio: number) {
 }
 
 function resolveBounds(metrics: RadarMetric[]): { dataMin: number; dataMax: number } {
-  const provided = metrics.reduce((m, metric) => Math.max(m, metric.max ?? 0), 0)
-  if (provided > 0) return { dataMin: 0, dataMax: provided }
+  const providedMax = metrics.reduce((m, metric) => Math.max(m, metric.max ?? 0), 0)
+  const providedMin = metrics.reduce((m, metric) => Math.min(m, metric.min ?? 1000), 1000)
   const values = metrics.map((m) => m.value)
   const rawMin = Math.min(...values)
   const rawMax = Math.max(...values)
   if (rawMax <= 0 && rawMin >= 0) return { dataMin: 0, dataMax: 1 }
-  let dataMin = Math.floor(rawMin)
-  let dataMax = Math.ceil(rawMax)
-  if (dataMin === dataMax) dataMax = dataMin + 1
+  let dataMin = providedMin < 1000 ? providedMin : Math.floor(rawMin) - 1
+  let dataMax = providedMax > 0 ? providedMax : Math.ceil(rawMax)
   return { dataMin, dataMax }
 }
 

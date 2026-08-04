@@ -28,7 +28,7 @@ function MetricGrid({ items }: { items: { label: string; value: string; note?: s
 function V1ConstantPanel({ data }: { data?: V1Difficulty }) {
   if (!data) return <EmptyConstant version="v1" />
   const metrics: RadarMetric[] = [
-    { label: '复合处理', value: data.composite },
+    { label: '复合处理', value: data.composite, min: 0 },
     { label: '平均密度', value: data.avgDensity },
     { label: '瞬时密度', value: data.instDensity },
     { label: '流速变化', value: data.separation },
@@ -49,7 +49,7 @@ function V1ConstantPanel({ data }: { data?: V1Difficulty }) {
           { label: '节奏变化', value: data.hsChange.toFixed(2) },
         ]} />
       </div>
-      <RadarChart title="谱面结构" metrics={metrics} />
+      <RadarChart title="FumenDB定数" metrics={metrics} />
     </div>
   )
 }
@@ -57,7 +57,7 @@ function V1ConstantPanel({ data }: { data?: V1Difficulty }) {
 function V2ConstantPanel({ data }: { data?: V2Difficulty }) {
   if (!data) return <EmptyConstant version="v2" />
   const metrics: RadarMetric[] = [
-    { label: '体力', value: data.stamina },
+    { label: '体力', value: data.stamina, min: 0 },
     { label: '手速', value: data.handspeed },
     { label: '爆发', value: data.burst },
     { label: '节奏', value: data.rhythm },
@@ -80,7 +80,7 @@ function V2ConstantPanel({ data }: { data?: V2Difficulty }) {
           { label: '节奏', value: data.rhythm.toFixed(2) },
         ]} />
       </div>
-      <RadarChart title="能力维度" metrics={metrics} />
+      <RadarChart title="咕咕定数" metrics={metrics} />
     </div>
   )
 }
