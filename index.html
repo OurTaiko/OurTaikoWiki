@@ -4,6 +4,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>太鼓之达人 Rating & 六维分析</title>
+    <script>
+      // 旧域名数据迁移：读取 localStorage 并跳转到新域名，数据编码在 URL hash 中
+      ;(function () {
+        var host = location.hostname
+        if (host !== 'rating.ourtaiko.org' && host !== 'v2.rating.ourtaiko.org') return
+
+        var data = {
+          sakuraToken: localStorage.getItem('sakuraToken'),
+          kinokoApiKey: localStorage.getItem('kinokoApiKey'),
+          kinokoPlayerId: localStorage.getItem('kinokoPlayerId'),
+          taikoScoreData: localStorage.getItem('taikoScoreData')
+        }
+
+        var encoded = btoa(encodeURIComponent(JSON.stringify(data)))
+        location.href = 'https://wiki.ourtaiko.org/migrate#data=' + encoded
+      })()
+    </script>
   </head>
   <body>
     <div id="app"></div>
