@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { BarChart3, BookOpenText, Drum, Import, Menu, Settings, X } from 'lucide-react'
+import { BarChart3, BookOpenText, Drum, Import, Info, Menu, Settings, X } from 'lucide-react'
 import { Link, NavLink } from 'react-router-dom'
 import { useWiki } from '../context/WikiContext'
 import { ImportDialog } from './ImportDialog'
@@ -24,6 +24,7 @@ export function Header() {
             <button type="button" onClick={() => { setImportOpen(true); setMenuOpen(false) }}>
               <Import size={17} />导入成绩{scores.length > 0 && <span className="nav-count">{scores.length}</span>}
             </button>
+            <NavLink to="/about" onClick={() => setMenuOpen(false)}><Info size={17} />关于</NavLink>
             <NavLink to="/settings" onClick={() => setMenuOpen(false)} className="nav-settings"><Settings size={17} />设置</NavLink>
           </nav>
 

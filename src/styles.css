@@ -411,6 +411,35 @@
   .settings-option-card input { position: absolute; opacity: 0; pointer-events: none; }
   .settings-option-card strong { font: 700 .95rem var(--display); }
   .settings-option-card span { color: var(--ink-soft); font-size: .72rem; line-height: 1.5; }
+
+  .about-page { padding-bottom: 4rem; }
+  .about-hero { padding: 3.8rem 0 2.2rem; border-bottom: 1px solid var(--line); }
+  .about-hero__title { display: flex; flex-wrap: wrap; gap: .9rem; align-items: center; margin-top: .8rem; }
+  .about-hero h1 { margin-top: 0; font: 700 clamp(2.4rem, 5vw, 3.6rem)/1.1 var(--display); letter-spacing: -.04em; }
+  .about-hero p { margin-top: .6rem; color: var(--ink-soft); }
+  .about-section { margin-top: 1.4rem; padding: 1.6rem; }
+  .about-section__header { display: flex; gap: .9rem; padding-bottom: 1.2rem; border-bottom: 1px solid var(--line); }
+  .about-section__header svg { margin-top: 2px; color: var(--accent); }
+  .about-section__header h2 { font: 700 1.25rem var(--display); }
+  .about-section__header p { margin-top: .2rem; color: var(--ink-soft); font-size: .74rem; }
+  .about-repo-link { display: inline-flex; flex: none; align-items: center; gap: .45rem; padding: .5rem .75rem; color: var(--ink-soft); background: var(--surface-soft); border: 1px solid var(--line); border-radius: var(--radius-small); font: 700 .72rem var(--mono); transition: color 140ms, border-color 140ms, box-shadow 140ms; }
+  .about-repo-link:hover { color: var(--accent); border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
+  .about-repo-link svg { color: var(--accent); }
+  .about-contributors { display: block; width: min(100%, 720px); margin: 1.2rem auto 0; }
+  .about-contributors img { display: block; width: 100%; height: auto; background: var(--surface-solid); border: 1px solid var(--line); border-radius: var(--radius-small); transition: border-color 140ms, box-shadow 140ms; }
+  .about-contributors:hover img { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
+  .about-thanks { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .8rem; margin-top: 1.2rem; }
+  .about-thank-card { position: relative; display: flex; min-height: 92px; padding: 1rem 1.15rem; flex-direction: column; justify-content: center; gap: .3rem; background: var(--surface-soft); border: 1px solid var(--line); border-radius: var(--radius-small); transition: border-color 140ms, box-shadow 140ms; }
+  .about-thank-card:hover { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
+  .about-thank-card strong { padding-right: 1.4rem; overflow: hidden; font: 700 .92rem var(--display); text-overflow: ellipsis; white-space: nowrap; }
+  .about-thank-card span { color: var(--ink-soft); font-size: .72rem; line-height: 1.5; }
+  .about-thank-card svg { position: absolute; top: 1rem; right: 1rem; color: var(--accent); }
+  .about-people { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .8rem; margin-top: 1.2rem; }
+  .about-person { display: flex; min-height: 62px; padding: .9rem 1rem; align-items: center; gap: .55rem; background: var(--surface-soft); border: 1px solid var(--line); border-radius: var(--radius-small); transition: border-color 140ms, box-shadow 140ms; }
+  .about-person:hover { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
+  .about-person strong { overflow: hidden; font: 700 .95rem var(--display); text-overflow: ellipsis; white-space: nowrap; }
+  .about-person span { margin-left: auto; color: var(--ink-soft); font: .66rem var(--mono); }
+  .about-person svg { color: var(--accent); }
 }
 
 @layer themes {
@@ -558,6 +587,9 @@
     .settings-hero { padding: 3rem 0 1.6rem; }
     .settings-section { padding: 1rem; }
     .settings-options { grid-template-columns: 1fr; }
+    .about-hero { padding: 3rem 0 1.6rem; }
+    .about-section { padding: 1rem; }
+    .about-thanks, .about-people { grid-template-columns: 1fr; }
   }
 
   @media (max-width: 420px) {
