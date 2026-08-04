@@ -15,6 +15,23 @@ const { t } = useI18n()
 const router = useRouter()
 const { showModal } = useModal()
 
+// 旧域名数据迁移：仅旧域名展示按钮，用户点击后携带 localStorage 数据跳转到新网址
+const isLegacyDomain = computed(() => {
+  const host = window.location.hostname
+  return host === 'rating.ourtaiko.org' || host === 'v2.rating.ourtaiko.org'
+})
+
+const migrateToNewSite = () => {
+  const data = {
+    sakuraToken: localStorage.getItem('sakuraToken'),
+    kinokoApiKey: localStorage.getItem('kinokoApiKey'),
+    kinokoPlayerId: localStorage.getItem('kinokoPlayerId'),
+    taikoScoreData: localStorage.getItem('taikoScoreData')
+  }
+  const encoded = btoa(encodeURIComponent(JSON.stringify(data)))
+  window.location.href = 'https://wiki.ourtaiko.org/migrate#data=' + encoded
+}
+
 // Tab 配置 — 调整顺序只需交换数组元素
 const tabDefs = [
   { key: 'kinoko', icon: 'fa-key', labelKey: 'guide.kinokoTitle' as const, component: KinokoImportTab },
@@ -232,6 +249,27 @@ const analyze = async (scoreData: UserScore[]) => {
 
 <template>
   <div class="mx-auto max-w-[800px]">
+    <!-- 旧域名数据迁移提示（仅旧域名显示） -->
+    <section v-if="isLegacyDomain" class="bg-[#007AFF]/10 shadow-sm backdrop-blur-xl mb-6 p-6 border border-[#007AFF]/20 rounded-[24px]">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div class="flex items-start gap-4">
+          <div class="bg-[#007AFF]/10 p-2 rounded-full">
+            <i class="text-[#007AFF] fa-solid fa-circle-info"></i>
+          </div>
+          <div class="space-y-1">
+            <p class="m-0 font-medium text-[#1D1D1F]">本站已迁移至新网址</p>
+            <p class="m-0 text-[#86868B] text-sm">点击按钮，将本机保存的成绩数据一并迁移到新网址</p>
+          </div>
+        </div>
+        <button
+          @click="migrateToNewSite"
+          class="flex shrink-0 items-center gap-2 px-6 py-2.5 bg-[#007AFF] hover:bg-[#0066D6] text-white rounded-full font-semibold text-sm active:scale-95 transition-all duration-200 cursor-pointer"
+        >
+          <i class="fa-solid fa-arrow-right"></i>
+          <span>迁移数据并前往新网址</span>
+        </button>
+      </div>
+    </section>
     <!-- 顶部提示卡片 -->
     <section class="bg-white/70 shadow-sm backdrop-blur-xl mb-6 p-6 border border-white/20 rounded-[24px]">
       <div class="flex items-start gap-4">
