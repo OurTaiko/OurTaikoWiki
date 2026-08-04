@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { ArrowUpRight, BarChart3, Import, Info, LoaderCircle, Medal, ShieldCheck, Sparkles } from 'lucide-react'
+import { ArrowUpRight, BarChart3, Import, Info, LoaderCircle, Medal } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { ImportDialog } from '../components/ImportDialog'
 import { RadarChart, type RadarMetric } from '../components/RadarChart'
@@ -100,27 +100,6 @@ export function RatingPage() {
 
   return (
     <main className="page-shell rating-page">
-      <section className="rating-hero">
-        <div className="rating-hero__copy">
-          <span className="eyebrow"><Sparkles size={14} /> PLAYER RATING</span>
-          <h1>把每一次敲击，<br /><i>汇成你的能力轮廓。</i></h1>
-          <p>从已导入的最佳成绩中计算综合 Rating 与六项能力。当前使用 {algoVersion.toUpperCase()} 算法，可在设置页面切换算法版本。成绩始终只保存在当前浏览器。</p>
-          <div className="rating-hero__actions">
-            <button className="primary-button" type="button" onClick={() => setImportOpen(true)}><Import size={17} />{scores.length ? '更新成绩' : '导入成绩'}</button>
-            <span><ShieldCheck size={16} />已读取 {scores.length} 条本地成绩</span>
-          </div>
-        </div>
-        <div className="rating-version-switch panel">
-          <span className="rating-version-switch__label">ACTIVE ALGORITHM</span>
-          <div className="rating-current-algo">
-            <b>{algoVersion.toUpperCase()}</b>
-            <span>{algoVersion === 'v1' ? 'FumenDB定数' : '咕咕定数'}</span>
-          </div>
-          <Link to="/settings" className="rating-algo-link">更改算法设置</Link>
-          <i aria-hidden="true" />
-        </div>
-      </section>
-
       {loading && <section className="rating-state panel"><LoaderCircle className="spin" /><h2>正在整理 Rating 档案</h2><p>正在读取 v1 与 v2 定数数据库…</p></section>}
       {!loading && error && <section className="rating-state panel"><Info /><h2>暂时无法计算 Rating</h2><p>{error}</p></section>}
       {!loading && !error && !scores.length && (

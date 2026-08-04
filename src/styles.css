@@ -111,7 +111,7 @@
   .hero__stat small { color: var(--gold); font: 700 .75rem var(--mono); letter-spacing: .22em; }
   .hero__stamp { position: absolute; top: -24px; right: -20px; display: grid; width: 58px; height: 84px; padding-block: .35rem; place-items: center; color: #fff; background: var(--accent); border: 2px solid #f6dcd4; outline: 2px solid var(--accent); font: 700 .82rem/1.1 var(--display); }
 
-  .catalog-toolbar { position: relative; z-index: 2; margin-top: -1px; padding: 1.2rem; }
+  .catalog-toolbar { position: relative; z-index: 2; margin-top: 1.2rem; padding: 1.2rem; }
   .search-box { display: flex; align-items: center; gap: .8rem; padding: .85rem 1rem; background: var(--surface-solid); border: 1px solid var(--line); }
   .search-box svg { color: var(--accent); }
   .search-box input { width: 100%; color: var(--ink); background: transparent; border: 0; font-size: 1rem; }

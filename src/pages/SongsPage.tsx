@@ -1,5 +1,5 @@
 import { useDeferredValue, useEffect, useMemo, useState } from 'react'
-import { ChevronLeft, ChevronRight, Database, RefreshCw, Search, SlidersHorizontal, Sparkles } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Database, RefreshCw, Search, SlidersHorizontal } from 'lucide-react'
 import { SongCard } from '../components/SongCard'
 import { useWiki } from '../context/WikiContext'
 import type { Song } from '../types'
@@ -58,20 +58,6 @@ export function SongsPage() {
 
   return (
     <main className="page-shell songs-page">
-      <section className="hero">
-        <div className="hero__copy">
-          <span className="eyebrow"><Sparkles size={14} /> OUR TAIKO WIKI</span>
-          <h1>每一首鼓点，<br /><i>都值得被记下。</i></h1>
-          <p>浏览国服曲目、星级与谱面定数。每首歌都有独立资料页，并可对照 v1 与 v2 两套分析数据。</p>
-        </div>
-        <div className="hero__stat" aria-label={`收录 ${songs.length} 首曲目`}>
-          <span>当前收录</span>
-          <strong>{loading ? '—' : songs.length.toLocaleString()}</strong>
-          <small>CN SONGS</small>
-          <div className="hero__stamp">曲<br />目<br />鉴</div>
-        </div>
-      </section>
-
       <section className="catalog-toolbar panel" aria-label="歌曲筛选">
         <div className="search-box">
           <Search />
