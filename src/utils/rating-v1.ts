@@ -7,6 +7,7 @@ import {
   difficultyKey,
   filterDuplicates,
   filterIgnoredSongs,
+  isDondafuruScore,
   ratingDimensionLabels,
   scoreJudgementsAreValid,
   songTitle,
@@ -55,8 +56,9 @@ function getXFromConstant(constant: number): number {
 }
 
 export function calculateV1SongRating(data: V1Difficulty, score: ImportedScore, title: string, key: RatingEntry['difficultyKey']): RatingEntry | null {
-  if (!scoreJudgementsAreValid(score, data.totalNotes)) return null
-  const accuracy = calculateComprehensiveAccuracy(score.good, score.ok, data.totalNotes)
+  const dondafuru = isDondafuruScore(score)
+  if (!dondafuru && !scoreJudgementsAreValid(score, data.totalNotes)) return null
+  const accuracy = dondafuru ? 1 : calculateComprehensiveAccuracy(score.good, score.ok, data.totalNotes)
   if (accuracy < 0.75 || accuracy > 1) return null
 
   const x = getXFromConstant(data.constant)

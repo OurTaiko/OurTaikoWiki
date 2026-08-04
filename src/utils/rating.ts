@@ -144,3 +144,25 @@ export function weightedAverage(values: number[], weights: number[]): number {
 export function scoreJudgementsAreValid(score: ImportedScore, totalNotes: number): boolean {
   return score.good + score.ok + score.bad <= totalNotes
 }
+
+export interface DondafuruRef {
+  id: number
+  difficulty: number
+}
+
+// 全良（Dondafuru）成绩：即使判定列看起来不是全良，也按 acc=1、bad=0 计算。
+// 以下曲目即使 perfects > 0 也不按全良处理（与 taiko-rating-analyzer 一致）。
+const DONDARU_EXCEPTIONS: DondafuruRef[] = [
+  { id: 775, difficulty: 4 },
+  { id: 775, difficulty: 5 },
+  { id: 1032, difficulty: 5 },
+  { id: 1037, difficulty: 4 },
+  { id: 1356, difficulty: 4 },
+]
+
+export function isDondafuruScore(score: Pick<ImportedScore, 'id' | 'difficulty' | 'perfects'>): boolean {
+  if (score.perfects <= 0) return false
+  return !DONDARU_EXCEPTIONS.some(
+    (excluded) => excluded.id === score.id && excluded.difficulty === score.difficulty,
+  )
+}

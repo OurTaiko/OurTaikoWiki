@@ -6,6 +6,7 @@ import {
   calcY,
   filterDuplicates,
   filterIgnoredSongs,
+  isDondafuruScore,
   ratingDimensionLabels,
   scoreJudgementsAreValid,
   songTitle,
@@ -80,9 +81,10 @@ function calculateValues(song: FlatV2Song, accuracyPer: number, badPer: number):
 }
 
 function calculateEntry(song: FlatV2Song, score: ImportedScore, title: string): RatingEntry | null {
-  if (!scoreJudgementsAreValid(score, song.totalNotes)) return null
-  const accuracy = calculateComprehensiveAccuracy(score.good, score.ok, song.totalNotes)
-  const badPer = song.totalNotes > 0 ? score.bad / song.totalNotes : 0
+  const dondafuru = isDondafuruScore(score)
+  if (!dondafuru && !scoreJudgementsAreValid(score, song.totalNotes)) return null
+  const accuracy = dondafuru ? 1 : calculateComprehensiveAccuracy(score.good, score.ok, song.totalNotes)
+  const badPer = dondafuru ? 0 : song.totalNotes > 0 ? score.bad / song.totalNotes : 0
   const values = calculateValues(song, Math.max(0, Math.min(1, accuracy)), Math.max(0, Math.min(1, badPer)))
   if (!values || !Object.values(values).every(Number.isFinite)) return null
   return {
