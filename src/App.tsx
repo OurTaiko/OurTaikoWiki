@@ -4,6 +4,7 @@ import { SongsPage } from './pages/SongsPage'
 import { SongPage } from './pages/SongPage'
 import { RatingPage } from './pages/RatingPage'
 import { SettingsPage } from './pages/SettingsPage'
+import { MigratePage } from './pages/MigratePage'
 
 function Layout() {
   return (
@@ -24,6 +25,7 @@ export default function App() {
         <Route path="songs/:id" element={<SongPage />} />
         <Route path="rating" element={<RatingPage />} />
         <Route path="settings" element={<SettingsPage />} />
+        <Route path="migrate" element={<MigratePage />} />
         <Route path="*" element={<Navigate to="/songs" replace />} />
       </Route>
     </Routes>
