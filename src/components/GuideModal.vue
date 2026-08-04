@@ -26,7 +26,7 @@ const handleOverlayMouseDown = (e: MouseEvent) => {
 <template>
   <Transition name="modal">
     <div v-if="show" class="z-[1000] fixed inset-0 flex justify-center items-center bg-black/40 backdrop-blur-sm transition-opacity duration-300" @mousedown="handleOverlayMouseDown">
-      <div class="flex flex-col bg-white/90 shadow-2xl backdrop-blur-2xl border border-white/20 rounded-[32px] w-[95%] max-w-[800px] max-h-[85vh] overflow-hidden transition-all duration-300">
+      <div class="ffxiv-ui-dialog flex flex-col bg-white/90 shadow-2xl backdrop-blur-2xl border border-white/20 rounded-[32px] w-[95%] max-w-[800px] max-h-[85vh] overflow-hidden transition-all duration-300">
         <!-- Header -->
         <div class="flex flex-shrink-0 justify-between items-center px-8 py-6 border-black/5 border-b">
           <div class="flex items-center gap-3">

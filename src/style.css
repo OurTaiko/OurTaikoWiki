@@ -2,14 +2,33 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
-  background-color: #F5F5F7;
-  color: #1D1D1F;
-  margin: 0;
-  overflow-x: hidden;
+:root {
+  color-scheme: dark;
+  font-family:
+    Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    "Microsoft YaHei UI", "Noto Sans CJK SC", Arial, sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+html {
+  min-width: 320px;
+  min-height: 100%;
+  background: #171615;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  overflow-x: hidden;
+  background:
+    radial-gradient(circle at 50% -10%, rgb(126 111 88 / 18%), transparent 34rem),
+    linear-gradient(135deg, rgb(255 255 255 / 2%) 25%, transparent 25%) 0 0 / 8px 8px,
+    #171615;
+  color: #cccabf;
 }
 
 * {
@@ -17,25 +36,756 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Apple-like scrollbar */
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+::selection {
+  background: rgb(212 196 166 / 30%);
+  color: #f7efd9;
+}
+
+/* FF14-inspired theme scope */
+.ffxiv-ui,
+.ffxiv-ui-dialog,
+.ffxiv-ui-popper {
+  --ffxiv-backdrop: #171615;
+  --ffxiv-surface: #303030;
+  --ffxiv-surface-shine: #676161;
+  --ffxiv-surface-mid: #4f4f4f;
+  --ffxiv-surface-deep: #242322;
+  --ffxiv-control-top: #545454;
+  --ffxiv-control-bottom: #3b3b3b;
+  --ffxiv-edge: #8e7d62;
+  --ffxiv-edge-light: #d4c4a6;
+  --ffxiv-edge-dark: #6b5d48;
+  --ffxiv-steel: #777573;
+  --ffxiv-text: #cccabf;
+  --ffxiv-text-strong: #e5e0d5;
+  --ffxiv-text-muted: #b5a596;
+  --ffxiv-text-faint: #8f8b84;
+  --ffxiv-accent: #f4e5b2;
+  --ffxiv-accent-strong: #d6b85d;
+  --ffxiv-success: #91b48c;
+  --ffxiv-warning: #d5aa61;
+  --ffxiv-danger: #d47b7b;
+  --ffxiv-info: #91adbd;
+  --ffxiv-disabled: #8b8882;
+  --ffxiv-panel-radius: 5px;
+  --ffxiv-card-radius: 8px;
+  --ffxiv-control-radius: 999px;
+  --ffxiv-panel-background: linear-gradient(
+    to bottom,
+    rgb(103 97 97 / 94%) 0 3px,
+    rgb(79 79 79 / 95%) 7px,
+    rgb(48 48 48 / 98%) 18px 100%
+  );
+  --ffxiv-control-bevel: linear-gradient(
+    to bottom,
+    var(--ffxiv-control-top) 0 45%,
+    var(--ffxiv-control-bottom) 55% 100%
+  );
+  --ffxiv-panel-shadow:
+    inset 0 1px 2px rgb(255 255 255 / 16%),
+    0 8px 24px rgb(0 0 0 / 32%);
+  --ffxiv-focus-ring: 0 0 0 3px rgb(244 229 178 / 26%);
+
+  color: var(--ffxiv-text);
+}
+
+#app.ffxiv-ui {
+  position: relative;
+  isolation: isolate;
+  background:
+    radial-gradient(circle at 50% 6rem, rgb(142 125 98 / 12%), transparent 32rem),
+    radial-gradient(circle at 8% 38%, rgb(93 100 107 / 9%), transparent 24rem),
+    repeating-linear-gradient(135deg, rgb(255 255 255 / 1.5%) 0 1px, transparent 1px 7px),
+    var(--ffxiv-backdrop);
+}
+
+#app.ffxiv-ui::before {
+  position: fixed;
+  z-index: -1;
+  inset: 0;
+  background:
+    linear-gradient(90deg, transparent 0 49.9%, rgb(212 196 166 / 3%) 50%, transparent 50.1%),
+    linear-gradient(180deg, rgb(0 0 0 / 2%), rgb(0 0 0 / 28%));
+  content: "";
+  pointer-events: none;
+}
+
+.ffxiv-ui__main {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+}
+
+.ffxiv-ui__main > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* Major graphite surfaces */
+.ffxiv-ui__panel,
+.ffxiv-ui-dialog,
+.ffxiv-ui .faq-item {
+  position: relative;
+  min-width: 0;
+  max-width: 100%;
+  background: var(--ffxiv-panel-background);
+  border: 2px solid var(--ffxiv-edge);
+  border-image:
+    repeating-linear-gradient(
+      45deg,
+      #b8a88a 0 10%,
+      #8e7d62 10% 20%,
+      #d4c4a6 20% 30%,
+      #6b5d48 30% 40%
+    )
+    30% / 2px / 0 stretch;
+  border-radius: var(--ffxiv-panel-radius);
+  box-shadow: var(--ffxiv-panel-shadow);
+}
+
+.ffxiv-ui__panel--notice {
+  background:
+    linear-gradient(90deg, rgb(244 229 178 / 8%), transparent 35%),
+    var(--ffxiv-panel-background);
+}
+
+.ffxiv-ui__workspace {
+  min-width: 0;
+  max-width: 100%;
+  color: var(--ffxiv-text);
+}
+
+.ffxiv-ui__panel :is(.flex, .grid),
+.ffxiv-ui-dialog :is(.flex, .grid) {
+  min-width: 0;
+}
+
+.ffxiv-ui :is(.flex, .grid) > * {
+  min-width: 0;
+}
+
+.ffxiv-ui [class~="w-full"] {
+  max-width: 100%;
+}
+
+.ffxiv-ui__panel :is(p, li),
+.ffxiv-ui-dialog :is(p, li) {
+  overflow-wrap: anywhere;
+}
+
+.ffxiv-ui-dialog {
+  width: min(48.5rem, calc(100vw - 2rem));
+  max-height: min(88vh, 52rem);
+  color: var(--ffxiv-text);
+}
+
+.ffxiv-ui-dialog--compact {
+  width: min(20rem, calc(100vw - 2rem));
+}
+
+.ffxiv-ui [class~="bg-white/80"]:not(.ffxiv-ui-dialog):not(.ffxiv-ui__panel),
+.ffxiv-ui [class~="bg-white/90"]:not(.ffxiv-ui-dialog),
+.ffxiv-ui [class~="bg-white/95"]:not(.ffxiv-ui-dialog) {
+  background: var(--ffxiv-panel-background);
+  border-color: var(--ffxiv-edge);
+  border-radius: var(--ffxiv-card-radius);
+  box-shadow: var(--ffxiv-panel-shadow);
+}
+
+/* Header and navigation */
+.ffxiv-ui__nav {
+  overflow: hidden;
+  background:
+    linear-gradient(to bottom, rgb(84 82 80 / 97%), rgb(39 38 37 / 98%));
+  border-color: var(--ffxiv-edge-dark);
+  box-shadow:
+    inset 0 -1px rgb(255 255 255 / 6%),
+    0 5px 18px rgb(0 0 0 / 38%);
+}
+
+.ffxiv-ui__nav::after {
+  position: absolute;
+  right: 0;
+  bottom: -1px;
+  left: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--ffxiv-edge-light), transparent);
+  content: "";
+  opacity: 0.62;
+}
+
+.ffxiv-ui__nav > div > div:first-child {
+  color: var(--ffxiv-text-strong);
+  text-shadow: 0 1px 2px #000;
+}
+
+.ffxiv-ui__nav > div {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.ffxiv-ui__nav > div > div:first-child::before {
+  width: 0.65rem;
+  height: 0.65rem;
+  border: 1px solid var(--ffxiv-edge-light);
+  background: var(--ffxiv-accent-strong);
+  box-shadow: 0 0 9px rgb(214 184 93 / 38%);
+  content: "";
+  transform: rotate(45deg);
+}
+
+/* Typography */
+.ffxiv-ui :is(h1, h2, h3, h4, h5, h6) {
+  color: var(--ffxiv-text-strong);
+  text-wrap: balance;
+}
+
+.ffxiv-ui h1 {
+  text-shadow: 0 1px 2px rgb(0 0 0 / 70%);
+}
+
+.ffxiv-ui h1::after {
+  display: block;
+  width: min(8rem, 32vw);
+  height: 1px;
+  margin-top: 0.65rem;
+  background: linear-gradient(90deg, var(--ffxiv-edge-light), transparent);
+  content: "";
+}
+
+.ffxiv-ui .text-center h1::after,
+.ffxiv-ui h1.text-center::after {
+  margin-inline: auto;
+  background: linear-gradient(90deg, transparent, var(--ffxiv-edge-light), transparent);
+}
+
+.ffxiv-ui [class~="text-[#1D1D1F]"] {
+  color: var(--ffxiv-text-strong);
+}
+
+.ffxiv-ui [class~="text-[#86868B]"],
+.ffxiv-ui [class~="text-[#8E8E93]"] {
+  color: var(--ffxiv-text-muted);
+}
+
+.ffxiv-ui [class~="text-[#C7C7CC]"] {
+  color: var(--ffxiv-text-faint);
+}
+
+.ffxiv-ui [class~="text-[#007AFF]"] {
+  color: var(--ffxiv-accent);
+}
+
+.ffxiv-ui [class~="text-[#34C759]"] {
+  color: var(--ffxiv-success);
+}
+
+.ffxiv-ui [class~="text-[#FF9500]"],
+.ffxiv-ui [class~="text-[#FFCC00]"] {
+  color: var(--ffxiv-warning);
+}
+
+.ffxiv-ui [class~="text-[#FF3B30]"] {
+  color: var(--ffxiv-danger);
+}
+
+.ffxiv-ui [class~="text-white"] {
+  color: #f1ede4;
+}
+
+.ffxiv-ui a {
+  color: var(--ffxiv-accent);
+  text-underline-offset: 0.2em;
+}
+
+/* Inset cards and secondary surfaces */
+.ffxiv-ui [class~="bg-black/5"],
+.ffxiv-ui [class~="bg-black/[0.02]"],
+.ffxiv-ui [class~="bg-black/[0.03]"],
+.ffxiv-ui [class~="bg-black/[0.04]"],
+.ffxiv-ui [class~="bg-black/8"] {
+  background: rgb(12 12 12 / 25%);
+}
+
+.ffxiv-ui [class~="bg-black/10"],
+.ffxiv-ui [class~="bg-black/[0.08]"],
+.ffxiv-ui [class~="bg-black/15"] {
+  background: rgb(5 5 5 / 34%);
+}
+
+.ffxiv-ui [class~="bg-white/50"],
+.ffxiv-ui [class~="bg-white"] {
+  background: rgb(92 89 86 / 28%);
+  border-color: rgb(212 196 166 / 24%);
+}
+
+.ffxiv-ui [class~="bg-[#F2F2F2]"],
+.ffxiv-ui [class~="bg-[#F2F2F7]"] {
+  background: #3b3937;
+}
+
+.ffxiv-ui [class~="bg-[#FFFFFF]"] {
+  background: #2f2e2d;
+}
+
+.ffxiv-ui .group:hover [class~="group-hover:bg-[#FAFAFA]"] {
+  background: #393735;
+}
+
+.ffxiv-ui [class~="bg-[#007AFF]/5"],
+.ffxiv-ui [class~="bg-[#007AFF]/10"] {
+  background: rgb(244 229 178 / 11%);
+}
+
+.ffxiv-ui [class~="bg-[#34C759]/5"],
+.ffxiv-ui [class~="bg-[#34C759]/10"] {
+  background: rgb(145 180 140 / 11%);
+}
+
+.ffxiv-ui [class~="bg-[#FF9500]/10"] {
+  background: rgb(213 170 97 / 12%);
+}
+
+.ffxiv-ui [class~="bg-red-50"] {
+  background: rgb(212 123 123 / 12%);
+}
+
+/* Beveled controls */
+.ffxiv-ui button,
+.ffxiv-ui a[class*="rounded"] {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.ffxiv-ui button {
+  border: 1px solid transparent;
+}
+
+.ffxiv-ui button[class~="bg-black/5"],
+.ffxiv-ui a[class~="bg-black/5"],
+.ffxiv-ui button[class~="bg-white"],
+.ffxiv-ui button[class~="bg-white/50"],
+.ffxiv-ui button[class~="bg-white/70"],
+.ffxiv-ui button[class~="bg-white/80"] {
+  background: var(--ffxiv-control-bevel);
+  border-color: var(--ffxiv-steel);
+  box-shadow:
+    inset 0 1px rgb(255 255 255 / 12%),
+    0 2px 5px rgb(0 0 0 / 22%);
+  color: var(--ffxiv-text);
+}
+
+.ffxiv-ui button[class~="bg-[#007AFF]"],
+.ffxiv-ui button[class~="bg-[#0071E3]"],
+.ffxiv-ui button[class~="bg-[#0071e3]"],
+.ffxiv-ui a[class~="bg-[#007AFF]"] {
+  background:
+    linear-gradient(to bottom, #5e5a50 0 45%, #403d35 55% 100%);
+  border-color: var(--ffxiv-edge-light);
+  box-shadow:
+    inset 0 1px rgb(255 250 220 / 18%),
+    0 2px 8px rgb(0 0 0 / 28%);
+  color: var(--ffxiv-accent);
+  text-shadow: 0 1px 1px rgb(0 0 0 / 72%);
+}
+
+.ffxiv-ui [class~="bg-[#007AFF]"]:not(button):not(a) {
+  background: var(--ffxiv-accent-strong);
+  color: #28241b;
+}
+
+.ffxiv-ui button:hover:not(:disabled),
+.ffxiv-ui a[class*="rounded"]:hover {
+  border-color: var(--ffxiv-edge-light);
+  color: var(--ffxiv-accent);
+  filter: brightness(1.15);
+}
+
+.ffxiv-ui button:active:not(:disabled),
+.ffxiv-ui a[class*="rounded"]:active {
+  filter: brightness(1.03);
+  transform: translateY(1px);
+}
+
+.ffxiv-ui :is(button, a, input, textarea, select, [tabindex]):focus-visible {
+  outline: 2px solid var(--ffxiv-accent);
+  outline-offset: 3px;
+  box-shadow: var(--ffxiv-focus-ring);
+}
+
+.ffxiv-ui button:disabled,
+.ffxiv-ui [aria-disabled="true"] {
+  color: var(--ffxiv-disabled);
+  cursor: not-allowed;
+  filter: saturate(0.35) brightness(0.72);
+}
+
+.ffxiv-ui button[class~="opacity-30"]:disabled {
+  opacity: 0.52;
+}
+
+/* Forms */
+.ffxiv-ui input:not([type="checkbox"]):not([type="range"]):not([type="file"]),
+.ffxiv-ui textarea,
+.ffxiv-ui select {
+  min-height: 2.5rem;
+  background: var(--ffxiv-control-bevel);
+  border: 1px solid #858381;
+  border-radius: var(--ffxiv-control-radius);
+  box-shadow:
+    inset 0 1px 3px rgb(0 0 0 / 38%),
+    inset 0 1px rgb(255 255 255 / 10%);
+  color: var(--ffxiv-text-strong);
+  caret-color: var(--ffxiv-accent);
+}
+
+.ffxiv-ui textarea {
+  border-radius: var(--ffxiv-card-radius);
+}
+
+.ffxiv-ui input::placeholder,
+.ffxiv-ui textarea::placeholder {
+  color: var(--ffxiv-text-faint);
+  opacity: 1;
+}
+
+.ffxiv-ui input:not([type="checkbox"]):not([type="range"]):hover,
+.ffxiv-ui textarea:hover,
+.ffxiv-ui select:hover {
+  border-color: var(--ffxiv-edge-light);
+  filter: brightness(1.06);
+}
+
+.ffxiv-ui input:not([type="checkbox"]):not([type="range"]):focus,
+.ffxiv-ui textarea:focus,
+.ffxiv-ui select:focus {
+  background: var(--ffxiv-control-bevel);
+  border-color: var(--ffxiv-accent);
+  outline: none;
+  box-shadow:
+    inset 0 0 0 1px var(--ffxiv-accent),
+    var(--ffxiv-focus-ring);
+}
+
+.ffxiv-ui label {
+  color: var(--ffxiv-text-muted);
+}
+
+.ffxiv-ui input[type="checkbox"]:not(.sr-only) {
+  width: 1rem;
+  height: 1rem;
+  margin: 0;
+  appearance: none;
+  border: 2px solid #777573;
+  border-radius: 2px;
+  background: linear-gradient(to bottom, #454240, #2f2e2c);
+  vertical-align: -0.12em;
+}
+
+.ffxiv-ui input[type="checkbox"]:not(.sr-only):checked {
+  border-color: var(--ffxiv-edge-light);
+  background-color: var(--ffxiv-accent-strong);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 10'%3E%3Cpath d='M1 5l3 3 7-7' fill='none' stroke='%232b271f' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-position: center;
+  background-size: 0.7rem;
+  background-repeat: no-repeat;
+}
+
+.ffxiv-ui input[type="checkbox"]:not(.sr-only):disabled {
+  opacity: 0.55;
+}
+
+.ffxiv-ui input[type="range"] {
+  accent-color: var(--ffxiv-accent-strong);
+}
+
+.ffxiv-ui input[type="range"]::-webkit-slider-thumb {
+  border: 1px solid var(--ffxiv-edge-light);
+  background: var(--ffxiv-control-bevel);
+}
+
+/* Tables */
+.ffxiv-ui table {
+  color: var(--ffxiv-text);
+}
+
+.ffxiv-ui table thead {
+  color: var(--ffxiv-text-strong);
+}
+
+.ffxiv-ui table th {
+  background:
+    linear-gradient(to bottom, #55514e 0 3px, #393735 8px 100%);
+  border-color: rgb(142 125 98 / 48%);
+  color: var(--ffxiv-text-strong);
+  box-shadow: inset 0 -1px rgb(0 0 0 / 38%);
+}
+
+.ffxiv-ui table td {
+  border-color: rgb(142 125 98 / 20%);
+}
+
+.ffxiv-ui tbody tr:nth-child(even) {
+  background: rgb(255 255 255 / 1.8%);
+}
+
+.ffxiv-ui tbody tr:hover {
+  background: rgb(244 229 178 / 7%);
+}
+
+.ffxiv-ui [class~="overflow-x-auto"][class~="bg-white"],
+.ffxiv-ui [class~="overflow-x-auto"][class~="bg-white/50"],
+.ffxiv-ui [class~="overflow-auto"][class~="border"] {
+  border-color: var(--ffxiv-edge-dark);
+  border-radius: var(--ffxiv-card-radius);
+  background: rgb(24 23 22 / 42%);
+  box-shadow: inset 0 1px 4px rgb(0 0 0 / 28%);
+}
+
+/* Status colors and progress */
+.ffxiv-ui [class~="bg-[#34C759]"],
+.ffxiv-ui [class~="bg-[#34C759]/60"] {
+  background-color: var(--ffxiv-success);
+}
+
+.ffxiv-ui [class~="bg-[#FFCC00]/60"] {
+  background-color: #c5aa65;
+}
+
+.ffxiv-ui [class~="bg-[#FF9500]/60"] {
+  background-color: var(--ffxiv-warning);
+}
+
+.ffxiv-ui [class~="bg-[#FF3B30]"],
+.ffxiv-ui [class~="bg-[#FF3B30]/60"],
+.ffxiv-ui [class~="bg-red-500"] {
+  background-color: var(--ffxiv-danger);
+}
+
+.ffxiv-ui [class~="bg-[#AF52DE]"] {
+  background-color: #8b7894;
+}
+
+.ffxiv-ui [class~="bg-[#5856D6]"] {
+  background-color: #777aa0;
+}
+
+.ffxiv-ui [class~="bg-[#007AFF]/60"] {
+  background-color: #9ea991;
+}
+
+.ffxiv-ui [class~="border-[#FF9500]/20"] {
+  border-color: rgb(213 170 97 / 38%);
+}
+
+.ffxiv-ui [class~="border-[#34C759]/20"] {
+  border-color: rgb(145 180 140 / 36%);
+}
+
+.ffxiv-ui [class~="border-[#007AFF]"] {
+  border-color: var(--ffxiv-accent);
+  border-top-color: transparent;
+}
+
+/* Dialogs, popovers and overlays */
+.ffxiv-ui [class~="bg-black/40"][class~="fixed"],
+.ffxiv-ui [class~="bg-black/20"][class~="fixed"] {
+  background: rgb(5 5 5 / 72%);
+  backdrop-filter: blur(5px) saturate(0.7);
+}
+
+.ffxiv-ui-dialog > :first-child {
+  border-color: rgb(212 196 166 / 20%);
+}
+
+.ffxiv-ui-dialog [class~="overflow-y-auto"] {
+  scrollbar-color: var(--ffxiv-edge) transparent;
+}
+
+/* Floating actions */
+.ffxiv-ui button[class~="fixed"][class~="rounded-full"] {
+  background: var(--ffxiv-control-bevel);
+  border: 1px solid var(--ffxiv-edge-light);
+  box-shadow:
+    inset 0 1px rgb(255 255 255 / 14%),
+    0 5px 14px rgb(0 0 0 / 45%),
+    0 0 0 3px rgb(142 125 98 / 12%);
+  color: var(--ffxiv-accent);
+}
+
+/* FAQ */
+.ffxiv-ui .faq-page {
+  max-width: 52rem;
+}
+
+.ffxiv-ui .faq-item {
+  overflow: hidden;
+}
+
+.ffxiv-ui .faq-question {
+  color: var(--ffxiv-text-strong);
+}
+
+.ffxiv-ui .faq-question:hover {
+  background: rgb(244 229 178 / 6%);
+}
+
+.ffxiv-ui .faq-number {
+  border: 1px solid var(--ffxiv-edge);
+  border-radius: 3px;
+  background: #3a3732;
+  color: var(--ffxiv-accent);
+}
+
+.ffxiv-ui .faq-q-text {
+  color: var(--ffxiv-text-strong);
+}
+
+.ffxiv-ui .faq-chevron,
+.ffxiv-ui .faq-answer {
+  color: var(--ffxiv-text-muted);
+}
+
+.ffxiv-ui .faq-chevron--open {
+  color: var(--ffxiv-accent);
+}
+
+/* Borders and separators from the former light theme */
+.ffxiv-ui [class~="border-black/5"],
+.ffxiv-ui [class~="border-black/10"],
+.ffxiv-ui [class~="border-white/20"] {
+  border-color: rgb(142 125 98 / 30%);
+}
+
+.ffxiv-ui [class~="after:bg-black/[0.08]"]::after,
+.ffxiv-ui [class~="bg-black/15"] {
+  background-color: rgb(212 196 166 / 18%);
+}
+
+/* Scrollbars */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: rgb(0 0 0 / 16%);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.1);
-  border-radius: 10px;
   border: 2px solid transparent;
+  border-radius: 999px;
+  background: var(--ffxiv-edge, #8e7d62);
   background-clip: content-box;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.2);
-  border: 2px solid transparent;
+  background: var(--ffxiv-edge-light, #d4c4a6);
   background-clip: content-box;
+}
+
+@media (max-width: 52rem) {
+  .ffxiv-ui__main {
+    padding-block: 1.5rem 6rem;
+  }
+
+  .ffxiv-ui__nav > div {
+    gap: 0.65rem;
+  }
+
+  .ffxiv-ui__nav > div > div:last-child {
+    justify-content: flex-start;
+    min-width: 0;
+    max-width: 100%;
+    padding: 0.2rem 0.25rem 0.4rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .ffxiv-ui__nav > div > div:last-child::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@media (max-width: 32.5rem) {
+  .ffxiv-ui__main {
+    padding-inline: 0.5rem;
+    padding-top: 1rem;
+  }
+
+  .ffxiv-ui__panel {
+    width: 100%;
+    padding: 1rem;
+    overflow-x: hidden;
+  }
+
+  .ffxiv-ui__workspace {
+    padding-inline: 0.5rem;
+  }
+
+  .ffxiv-ui__workspace [class~="max-w-[400px]"] {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .ffxiv-ui__panel > [class~="relative"][class~="flex"][class~="border-b"] {
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .ffxiv-ui__panel > [class~="relative"][class~="flex"][class~="border-b"]::-webkit-scrollbar {
+    display: none;
+  }
+
+  .ffxiv-ui__panel > [class~="relative"][class~="flex"][class~="border-b"] > button {
+    flex: 0 0 7.5rem;
+    white-space: normal;
+  }
+
+  .ffxiv-ui__panel > [class~="p-10"],
+  .ffxiv-ui__panel > [class~="p-8"] {
+    padding: 1.25rem;
+  }
+
+  .ffxiv-ui-dialog {
+    width: calc(100vw - 1rem);
+    max-width: calc(100vw - 1rem);
+    max-height: calc(100vh - 1rem);
+  }
+
+  .ffxiv-ui button:not([class~="w-8"]):not([class~="w-10"]):not([class~="w-12"]),
+  .ffxiv-ui a[class*="rounded"] {
+    min-height: 2.75rem;
+  }
+
+  .ffxiv-ui input:not([type="checkbox"]):not([type="range"]),
+  .ffxiv-ui select {
+    min-height: 2.75rem;
+  }
+
+  .ffxiv-ui [class~="grid-cols-3"]:not([class*="md:grid-cols"]),
+  .ffxiv-ui [class~="grid-cols-2"]:not([class*="md:grid-cols"]) {
+    gap: 0.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ffxiv-ui *,
+  .ffxiv-ui *::before,
+  .ffxiv-ui *::after,
+  .ffxiv-ui-dialog *,
+  .ffxiv-ui-dialog *::before,
+  .ffxiv-ui-dialog *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

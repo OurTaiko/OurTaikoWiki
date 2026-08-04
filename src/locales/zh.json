@@ -5,6 +5,8 @@
     "report": "分析报告",
     "guide": "使用指南",
     "faq": "常见问题",
+    "v2test": "分析报告（V2 测试版）",
+    "v2full": "全曲上限",
     "lang": "语言"
   },
   "common": {
@@ -84,7 +86,6 @@
   "menu": {
     "title": "菜单",
     "qqGroup": "加入QQ群",
-    "screenshot": "保存截图",
     "github": "GitHub 仓库"
   },
   "report": {

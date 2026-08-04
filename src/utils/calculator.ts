@@ -111,7 +111,7 @@ function getXFromConstant(constant: number): number {
  * @param algorithm - 使用的算法类型
  * @returns Y轴分数，代表准确度维度的能力值
  */
-function calcY(accuracy: number, algorithm: RatingAlgorithm = 'comprehensive'): number {
+export function calcY(accuracy: number, algorithm: RatingAlgorithm = 'comprehensive'): number {
   let g0: number, g1: number, g2: number
   let calcY_1: (acc: number) => number
   let calcY_2: (acc: number) => number
@@ -192,7 +192,7 @@ function calcW(x: number, y: number): number {
  * - p是由calcP计算的范数参数，决定取平均的方式
  * - 这种设计使得rating能够自适应不同的难度-准确度组合
  */
-function calcSingleRating(x: number, y: number): number {
+export function calcSingleRating(x: number, y: number): number {
   const p = calcP(x, y)
   const w = calcW(x, y)
 

@@ -34,7 +34,7 @@ loadFaqs()
 </script>
 
 <template>
-  <div class="faq-page">
+  <div class="faq-page ffxiv-ui__workspace">
     <!-- Header -->
     <div class="text-center mb-10">
       <h1 class="text-3xl md:text-4xl font-bold text-[#1D1D1F] tracking-tight">FAQ</h1>

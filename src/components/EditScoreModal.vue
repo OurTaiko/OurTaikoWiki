@@ -150,7 +150,7 @@ const handleClear = () => {
       class="z-[1000] fixed inset-0 flex justify-center items-center bg-black/40 backdrop-blur-sm transition-opacity duration-300"
       @mousedown.self="$emit('close')">
       <div
-        class="bg-white/90 shadow-2xl backdrop-blur-2xl border border-white/20 rounded-[32px] w-[95%] max-w-[500px] overflow-hidden transition-all duration-300"
+        class="ffxiv-ui-dialog bg-white/90 shadow-2xl backdrop-blur-2xl border border-white/20 rounded-[32px] w-[95%] max-w-[500px] overflow-hidden transition-all duration-300"
         @mousedown.stop>
         <!-- Header -->
         <div class="flex justify-between items-center px-8 py-6">

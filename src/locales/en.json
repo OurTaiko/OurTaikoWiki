@@ -5,6 +5,7 @@
     "report": "Analysis",
     "guide": "Guide",
     "faq": "FAQ",
+    "v2full": "Max Rating",
     "lang": "Language"
   },
   "common": {
@@ -84,7 +85,6 @@
   "menu": {
     "title": "Menu",
     "qqGroup": "Join QQ Group",
-    "screenshot": "Save Screenshot",
     "github": "GitHub Repo"
   },
   "report": {

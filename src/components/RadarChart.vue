@@ -1,67 +1,45 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, watch, ref, computed } from 'vue'
+import { onMounted, onUnmounted, watch, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Chart, RadarController, RadialLinearScale, PointElement, LineElement, Filler, Tooltip, Legend } from 'chart.js'
 import ChartDataLabels from 'chartjs-plugin-datalabels'
 
 interface Props {
-  data: {
-    daigouryoku: number
-    stamina: number
-    speed: number
-    accuracy: number
-    rhythm: number
-    complex: number
-  }
+  labels: string[]
+  values: number[]
 }
 
 const props = defineProps<Props>()
-const { t, locale } = useI18n()
+const { locale } = useI18n()
 const canvasRef = ref<HTMLCanvasElement | null>(null)
 let chartInstance: Chart | null = null
 
 // 注册Chart.js插件
 Chart.register(RadarController, RadialLinearScale, PointElement, LineElement, Filler, Tooltip, Legend, ChartDataLabels)
 
-const chartLabels = computed(() => [
-  t('radar.daigouryoku'),
-  t('radar.stamina'),
-  t('radar.speed'),
-  t('radar.accuracy'),
-  t('radar.rhythm'),
-  t('radar.complex')
-])
-
 const createChart = () => {
   if (!canvasRef.value) return
-  
+
   // 销毁旧实例
   if (chartInstance) {
     chartInstance.destroy()
   }
 
-  const stats = [
-    props.data.daigouryoku,
-    props.data.stamina,
-    props.data.speed,
-    props.data.accuracy,
-    props.data.rhythm,
-    props.data.complex
-  ]
-  const minVal = Math.min(...stats) - 1
+  const minVal = Math.min(...props.values) - 1
 
   chartInstance = new Chart(canvasRef.value, {
     type: 'radar',
     data: {
-      labels: chartLabels.value,
+      labels: props.labels,
       datasets: [{
-        label: t('radar.value'),
-        data: stats,
-        backgroundColor: 'rgba(233, 30, 99, 0.2)',
-        borderColor: 'rgba(233, 30, 99, 1)',
+        data: props.values,
+        backgroundColor: 'rgba(214, 184, 93, 0.18)',
+        borderColor: '#d4c4a6',
         borderWidth: 2,
-        pointBackgroundColor: '#fff',
-        pointBorderColor: '#e91e63'
+        pointBackgroundColor: '#303030',
+        pointBorderColor: '#f4e5b2',
+        pointHoverBackgroundColor: '#f4e5b2',
+        pointHoverBorderColor: '#303030'
       }]
     },
     options: {
@@ -72,6 +50,7 @@ const createChart = () => {
         r: {
           suggestedMin: minVal > 0 ? minVal : 0,
           pointLabels: {
+            color: '#cccabf',
             padding: 20,
             font: {
               size: 14,
@@ -80,9 +59,16 @@ const createChart = () => {
           },
           ticks: {
             display: true,
+            color: '#ae9b89',
             backdropColor: 'transparent',
             stepSize: 1,
             callback: (value: number | string) => Number(value).toFixed(0)
+          },
+          angleLines: {
+            color: 'rgba(212, 196, 166, 0.2)'
+          },
+          grid: {
+            color: 'rgba(204, 202, 191, 0.14)'
           }
         }
       },
@@ -93,7 +79,9 @@ const createChart = () => {
         datalabels: {
           anchor: 'end',
           align: 'end',
-          backgroundColor: 'rgba(255, 255, 255, 0.8)',
+          backgroundColor: 'rgba(48, 48, 48, 0.9)',
+          borderColor: 'rgba(212, 196, 166, 0.55)',
+          borderWidth: 1,
           borderRadius: 4,
           padding: 2,
           formatter: (value: number) => Number(value).toFixed(2),
@@ -101,7 +89,14 @@ const createChart = () => {
             size: 14,
             weight: 'bold'
           },
-          color: '#e91e63'
+          color: '#f4e5b2'
+        },
+        tooltip: {
+          backgroundColor: 'rgba(35, 34, 33, 0.96)',
+          borderColor: '#8e7d62',
+          borderWidth: 1,
+          titleColor: '#e5e0d5',
+          bodyColor: '#cccabf'
         }
       },
       responsive: true,
@@ -114,7 +109,7 @@ onMounted(() => {
   createChart()
 })
 
-watch([() => props.data, locale], () => {
+watch([() => props.values, () => props.labels, locale], () => {
   createChart()
 }, { deep: true })
 
