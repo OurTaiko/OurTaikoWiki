@@ -124,9 +124,6 @@ function SingleRatingCard({ version, entry, hasScore, hasConstants }: SingleRati
               <div key={key}><span>{label}</span><strong>{entry.values[key]?.toFixed(2) ?? '—'}</strong></div>
             ))}
           </div>
-          <footer>
-            {isV1 ? '综合良率 = (良 + 可 ÷ 2) ÷ 总音符数' : `不可率 ${((entry.bad / entry.totalNotes) * 100).toFixed(2)}% · 仅修正复合维度`}
-          </footer>
         </>
       )}
     </article>

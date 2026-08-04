@@ -470,7 +470,9 @@
   body[data-theme="ffxiv"] .main-nav a.active { color: var(--gold); background: rgb(244 229 178 / 8%); }
   body[data-theme="ffxiv"] .constant-hero,
   body[data-theme="ffxiv"] .v2-constants,
-  body[data-theme="ffxiv"] .rating-total { background: #292827; border: 1px solid var(--line); }
+  body[data-theme="ffxiv"] .rating-total,
+  body[data-theme="ffxiv"] .single-rating-card__score { background: #292827; border: 1px solid var(--line); }
+  body[data-theme="ffxiv"] .single-rating-card > header > div > span { color: #302e29; }
   body[data-theme="ffxiv"] .category-scroll button.is-active,
   body[data-theme="ffxiv"] .v2-constants .is-main { color: #302e29; background: var(--accent); }
   body[data-theme="ffxiv"] .category-tag { color: var(--gold); background: rgb(244 229 178 / 8%); }
