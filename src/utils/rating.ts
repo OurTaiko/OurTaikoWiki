@@ -1,4 +1,6 @@
 import type { DifficultyKey, ImportedScore, Song } from '../types'
+import { DUPLICATE_SONGS } from '../data/duplicateSongs'
+import { IGNORED_SONGS } from '../data/ignoredSongs'
 
 export type RatingVersion = 'v1' | 'v2'
 export type RatingDimensionKey =
@@ -104,6 +106,29 @@ export function topValues(entries: RatingEntry[], key: RatingDimensionKey): numb
     .filter((value): value is number => typeof value === 'number' && Number.isFinite(value))
     .sort((a, b) => b - a)
     .slice(0, 20)
+}
+
+export function filterIgnoredSongs(entries: RatingEntry[]): RatingEntry[] {
+  const ignored = new Set(IGNORED_SONGS)
+  return entries.filter((entry) => !ignored.has(entry.id))
+}
+
+export function filterDuplicates(entries: RatingEntry[]): RatingEntry[] {
+  const groupByEntry = new Map<string, number>()
+  DUPLICATE_SONGS.forEach((group, groupIndex) => group.forEach((item) => {
+    groupByEntry.set(`${item.id}-${item.difficulty}`, groupIndex)
+  }))
+  const bestByGroup = new Map<number, RatingEntry>()
+  entries.forEach((entry) => {
+    const groupIndex = groupByEntry.get(`${entry.id}-${entry.difficulty}`)
+    if (groupIndex === undefined) return
+    const current = bestByGroup.get(groupIndex)
+    if (!current || entry.values.rating > current.values.rating) bestByGroup.set(groupIndex, entry)
+  })
+  return entries.filter((entry) => {
+    const groupIndex = groupByEntry.get(`${entry.id}-${entry.difficulty}`)
+    return groupIndex === undefined || bestByGroup.get(groupIndex) === entry
+  })
 }
 
 export function weightedAverage(values: number[], weights: number[]): number {

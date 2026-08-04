@@ -4,6 +4,8 @@ import {
   calculateComprehensiveAccuracy,
   calcSingleRating,
   calcY,
+  filterDuplicates,
+  filterIgnoredSongs,
   ratingDimensionLabels,
   scoreJudgementsAreValid,
   songTitle,
@@ -153,11 +155,11 @@ function calculateSummary(entries: RatingEntry[], songs: FlatV2Song[]): RatingSu
 export function calculateV2Report(scores: ImportedScore[], songs: Song[], constants: V2SongMap): RatingReport {
   const database = flattenDatabase(constants)
   const byKey = new Map(database.map((song) => [`${song.id}-${song.difficulty}`, song]))
-  const entries = scores.flatMap((score) => {
+  const entries = filterDuplicates(filterIgnoredSongs(scores.flatMap((score) => {
     const song = byKey.get(`${score.id}-${score.difficulty}`)
     if (!song) return []
     const entry = calculateEntry(song, score, songTitle(score.id, songs))
     return entry ? [entry] : []
-  })
+  })))
   return { version: 'v2', entries, summary: calculateSummary(entries, database) }
 }

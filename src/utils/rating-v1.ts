@@ -5,6 +5,8 @@ import {
   calcSingleRating,
   calcY,
   difficultyKey,
+  filterDuplicates,
+  filterIgnoredSongs,
   ratingDimensionLabels,
   scoreJudgementsAreValid,
   songTitle,
@@ -47,23 +49,6 @@ const TOP_WEIGHTS = [
   ...Array(6).fill(0.2 / 6),
   ...Array(4).fill(0.1 / 4),
 ] as number[]
-
-const DUPLICATE_GROUPS: Array<Array<{ id: number; difficulty: number }>> = [
-  [{ id: 399, difficulty: 4 }, { id: 400, difficulty: 4 }],
-  [{ id: 399, difficulty: 5 }, { id: 400, difficulty: 5 }],
-  [{ id: 450, difficulty: 4 }, { id: 1257, difficulty: 4 }],
-  [{ id: 141, difficulty: 4 }, { id: 1258, difficulty: 4 }],
-  [{ id: 137, difficulty: 4 }, { id: 1259, difficulty: 4 }],
-  [{ id: 750, difficulty: 4 }, { id: 1260, difficulty: 4 }],
-  [{ id: 527, difficulty: 4 }, { id: 1261, difficulty: 4 }],
-  [{ id: 323, difficulty: 4 }, { id: 1262, difficulty: 4 }],
-  [{ id: 939, difficulty: 4 }, { id: 1263, difficulty: 4 }],
-  [{ id: 1146, difficulty: 4 }, { id: 1264, difficulty: 4 }],
-  [{ id: 1146, difficulty: 5 }, { id: 1264, difficulty: 5 }],
-  [{ id: 433, difficulty: 5 }, { id: 1265, difficulty: 5 }],
-  [{ id: 433, difficulty: 4 }, { id: 1265, difficulty: 4 }],
-  [{ id: 191, difficulty: 4 }, { id: 1266, difficulty: 4 }],
-]
 
 function getXFromConstant(constant: number): number {
   return CONSTANT_TO_X_MAP[constant] ?? 0.05
@@ -128,26 +113,8 @@ function calculateSummary(entries: RatingEntry[]): RatingSummaryItem[] {
   })
 }
 
-function filterDuplicates(entries: RatingEntry[]): RatingEntry[] {
-  const groupByEntry = new Map<string, number>()
-  DUPLICATE_GROUPS.forEach((group, groupIndex) => group.forEach((item) => {
-    groupByEntry.set(`${item.id}-${item.difficulty}`, groupIndex)
-  }))
-  const bestByGroup = new Map<number, RatingEntry>()
-  entries.forEach((entry) => {
-    const groupIndex = groupByEntry.get(`${entry.id}-${entry.difficulty}`)
-    if (groupIndex === undefined) return
-    const current = bestByGroup.get(groupIndex)
-    if (!current || entry.values.rating > current.values.rating) bestByGroup.set(groupIndex, entry)
-  })
-  return entries.filter((entry) => {
-    const groupIndex = groupByEntry.get(`${entry.id}-${entry.difficulty}`)
-    return groupIndex === undefined || bestByGroup.get(groupIndex) === entry
-  })
-}
-
 export function calculateV1Report(scores: ImportedScore[], songs: Song[], constants: Map<number, V1Song>): RatingReport {
-  const entries = filterDuplicates(scores.flatMap((score) => {
+  const entries = filterDuplicates(filterIgnoredSongs(scores.flatMap((score) => {
     const key = difficultyKey(score.difficulty)
     if (!key) return []
     const song = constants.get(score.id)
@@ -155,6 +122,6 @@ export function calculateV1Report(scores: ImportedScore[], songs: Song[], consta
     if (!data) return []
     const entry = calculateV1SongRating(data, score, songTitle(score.id, songs, song.title), key)
     return entry ? [entry] : []
-  }))
+  })))
   return { version: 'v1', entries, summary: calculateSummary(entries) }
 }
