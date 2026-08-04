@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { ArrowLeft, CalendarDays, ChevronRight, Database, Disc3, Gauge, Hash, Layers3, LoaderCircle, Music2, RotateCcw, Sparkles, Trophy } from 'lucide-react'
 import { Link, useParams } from 'react-router-dom'
+import { ChartPreview } from '../components/ChartPreview'
 import { DifficultyBadge, difficultyMeta } from '../components/DifficultyBadge'
 import { RadarChart, type RadarMetric } from '../components/RadarChart'
 import { useWiki } from '../context/WikiContext'
@@ -216,6 +217,14 @@ export function SongPage() {
         <div className="difficulty-selector">
           {difficultyKeys.map((key) => <DifficultyBadge key={key} difficulty={key} value={song.levels[key]} active={difficulty === key} onClick={() => setDifficulty(key)} />)}
         </div>
+      </section>
+
+      <section className="detail-section">
+        <div className="section-heading">
+          <div><span className="eyebrow"><Music2 size={14} /> CHART PREVIEW</span><h2>谱面预览</h2></div>
+          <p>来自 ESE 谱面库 · tja-renderer 交互渲染</p>
+        </div>
+        <ChartPreview songId={song.id} preferredDifficulty={difficulty} />
       </section>
 
       {score && (

@@ -210,6 +210,34 @@
   .section-heading h2, .constants-header h2 { margin-top: .5rem; font: 700 1.55rem var(--display); }
   .section-heading > p { color: var(--ink-soft); font-size: .75rem; }
   .difficulty-selector { display: flex; gap: .8rem; }
+  .chart-preview { padding: 1.15rem; background: var(--surface-solid); border: 1px solid var(--line); }
+  .chart-preview--state { display: flex; min-height: 220px; align-items: center; justify-content: center; flex-direction: column; gap: .7rem; color: var(--ink-soft); text-align: center; }
+  .chart-preview--state h3 { color: var(--ink); font: 700 1.05rem var(--display); }
+  .chart-preview--state p { max-width: 34rem; font-size: .82rem; line-height: 1.6; }
+  .chart-preview--state svg { color: var(--accent); }
+  .chart-preview__difficulties { display: flex; flex-wrap: wrap; gap: .55rem; margin-bottom: .9rem; }
+  .chart-preview__course { display: inline-flex; align-items: center; gap: .45rem; padding: .45rem .8rem; color: var(--ink-soft); background: var(--surface-soft); border: 1px solid var(--line); border-radius: var(--radius-small); font-size: .78rem; font-weight: 700; transition: color 140ms ease, background 140ms ease, border-color 140ms ease; }
+  .chart-preview__course small { font: 700 .66rem var(--mono); opacity: .75; }
+  .chart-preview__course:hover { color: var(--ink); }
+  .chart-preview__course.is-active { color: #fff; background: var(--accent); border-color: var(--accent-deep); box-shadow: 3px 3px 0 color-mix(in srgb, var(--accent) 25%, transparent); }
+  .chart-preview__course.is-active small { opacity: .85; }
+  .chart-preview__toolbar { display: flex; flex-wrap: wrap; gap: .6rem 1.4rem; align-items: center; margin-bottom: .9rem; }
+  .chart-preview__group { display: flex; flex-wrap: wrap; gap: .45rem; align-items: center; }
+  .chart-preview__group-label { display: inline-flex; gap: .35rem; align-items: center; color: var(--ink-soft); font: 650 .68rem var(--mono); letter-spacing: .08em; text-transform: uppercase; }
+  .chart-preview__branch-buttons, .chart-preview__zoom-buttons { display: flex; flex-wrap: wrap; gap: .3rem; align-items: center; }
+  .chart-preview__branch-buttons button, .chart-preview__zoom-buttons button { display: inline-flex; min-width: 30px; min-height: 30px; padding: .3rem .55rem; align-items: center; justify-content: center; color: var(--ink-soft); background: var(--surface-soft); border: 1px solid var(--line); border-radius: var(--radius-small); font-size: .72rem; font-weight: 700; transition: color 140ms ease, background 140ms ease; }
+  .chart-preview__branch-buttons button:hover, .chart-preview__zoom-buttons button:hover { color: var(--ink); }
+  .chart-preview__branch-buttons button.is-active, .chart-preview__zoom-buttons button.is-active { color: #fff; background: var(--secondary); border-color: color-mix(in srgb, var(--secondary) 70%, #000); }
+  .chart-preview__branch-buttons button:disabled, .chart-preview__zoom-buttons button:disabled { opacity: .45; }
+  .chart-preview__zoom-value { min-width: 5.4rem; color: var(--ink); font: 700 .74rem var(--mono); text-align: center; }
+  .chart-preview__canvas-wrap { max-height: min(72vh, 860px); background: #fafafa; border: 1px solid var(--line); overflow: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+  .chart-preview__canvas-wrap canvas { display: block; width: 100%; }
+  .chart-preview__info { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .9rem; }
+  .chart-preview__stat { display: flex; min-width: 7.2rem; padding: .55rem .7rem; flex-direction: column; gap: .2rem; background: var(--surface-soft); border: 1px solid var(--line); border-radius: var(--radius-small); }
+  .chart-preview__stat > span { color: var(--ink-soft); font: 650 .62rem var(--mono); letter-spacing: .08em; text-transform: uppercase; }
+  .chart-preview__stat > strong { color: var(--ink); font: 700 .8rem var(--mono); }
+  .chart-preview__stat--wide { min-width: 14rem; flex: 1; }
+  .chart-preview__hint { color: var(--ink-soft); font-size: .76rem; }
   .personal-score { display: grid; grid-template-columns: 260px 1fr; gap: 1rem; align-items: center; margin-bottom: 1.2rem; padding: 1.1rem 1.4rem; }
   .personal-score__title { display: grid; grid-template-columns: auto 1fr; gap: .1rem .5rem; align-items: center; }
   .personal-score__title svg { grid-row: span 2; color: var(--gold); }
