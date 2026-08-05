@@ -4,7 +4,7 @@ import { SongCard } from '../components/SongCard'
 import { useWiki } from '../context/WikiContext'
 import type { Song } from '../types'
 
-type SortMode = 'id' | 'openDay' | 'oni' | 'title'
+type SortMode = 'id' | 'openDay' | 'oni' | 'title' | 'category'
 const PAGE_SIZE = 24
 
 function dateValue(value: string) {
@@ -13,7 +13,11 @@ function dateValue(value: string) {
   return year && month && day ? new Date(year, month - 1, day).getTime() : new Date(value).getTime() || 0
 }
 
-function compareSongs(mode: SortMode, reverse: boolean) {
+function categorySortValue(song: Song, category: string): number {
+  return song.categories.find((item) => item.type === category)?.sort ?? Number.MAX_SAFE_INTEGER
+}
+
+function compareSongs(mode: SortMode, reverse: boolean, category: string) {
   return (a: Song, b: Song) => {
     let result = 0
     if (mode === 'title') {
@@ -22,6 +26,8 @@ function compareSongs(mode: SortMode, reverse: boolean) {
       result = Number(b.levels.oni || 0) - Number(a.levels.oni || 0) || b.id - a.id
     } else if (mode === 'openDay') {
       result = dateValue(b.openDay) - dateValue(a.openDay) || b.id - a.id
+    } else if (mode === 'category') {
+      result = categorySortValue(a, category) - categorySortValue(b, category) || a.id - b.id
     } else {
       result = a.id - b.id
     }
@@ -40,18 +46,22 @@ export function SongsPage() {
 
   const categories = useMemo(() => {
     const counts = new Map<string, number>()
-    songs.forEach((song) => counts.set(song.category, (counts.get(song.category) || 0) + 1))
+    songs.forEach((song) => {
+      for (const { type } of song.categories) {
+        counts.set(type, (counts.get(type) || 0) + 1)
+      }
+    })
     return [...counts.entries()].sort((a, b) => b[1] - a[1])
   }, [songs])
 
   const filteredSongs = useMemo(() => songs
-    .filter((song) => category === '全部' || song.category === category)
+    .filter((song) => category === '全部' || song.categories.some((item) => item.type === category))
     .filter((song) => {
       if (!deferredQuery) return true
       return [song.title, song.titleJp, song.subtitle, String(song.id)]
         .some((value) => value.toLocaleLowerCase().includes(deferredQuery))
     })
-    .sort(compareSongs(sort, reverse)), [songs, category, deferredQuery, sort, reverse])
+    .sort(compareSongs(sort, reverse, category)), [songs, category, deferredQuery, sort, reverse])
 
   const totalPages = Math.max(1, Math.ceil(filteredSongs.length / PAGE_SIZE))
   const visibleSongs = filteredSongs.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
@@ -74,7 +84,13 @@ export function SongsPage() {
         </div>
         <div className="toolbar-row">
           <div className="category-scroll" aria-label="歌曲分类">
-            <button className={category === '全部' ? 'is-active' : ''} onClick={() => setCategory('全部')}>全部 <span>{songs.length}</span></button>
+            <button
+              className={category === '全部' ? 'is-active' : ''}
+              onClick={() => {
+                setCategory('全部')
+                setSort((value) => value === 'category' ? 'id' : value)
+              }}
+            >全部 <span>{songs.length}</span></button>
             {categories.map(([name, count]) => (
               <button key={name} className={category === name ? 'is-active' : ''} onClick={() => setCategory(name)}>{name.replace(/音乐$/, '')} <span>{count}</span></button>
             ))}
@@ -88,6 +104,7 @@ export function SongsPage() {
               <option value="openDay">上线时间</option>
               <option value="oni">魔王星级</option>
               <option value="title">曲名</option>
+              <option value="category" disabled={category === '全部'}>分类顺序</option>
             </select>
             <button
               type="button"

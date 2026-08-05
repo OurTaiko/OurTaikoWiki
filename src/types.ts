@@ -5,15 +5,19 @@ export type ThemeId = 'archive' | 'ffxiv'
 export type SourceId = 'cn'
 export type AlgoVersion = 'v1' | 'v2'
 
+export interface SongCategory {
+  type: string
+  sort: number
+}
+
 export interface Song {
   id: number
   title: string
   titleJp: string
   subtitle: string
-  category: string
+  categories: SongCategory[]
   family: string
   openDay: string
-  sort: number
   levels: Record<DifficultyKey, number | string | null>
   source: SourceId
 }

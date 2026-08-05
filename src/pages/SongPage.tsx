@@ -196,7 +196,11 @@ export function SongPage() {
           )}
         </div>
         <div className="song-identity__copy">
-          <span className="category-tag">{song.category}</span>
+          <div className="song-category-list">
+            {song.categories.map((category) => (
+              <span className="category-tag" key={`${category.type}-${category.sort}`}>{category.type}</span>
+            ))}
+          </div>
           <h1>{song.title}</h1>
           {song.titleJp && song.titleJp !== song.title && <p className="song-jp">{song.titleJp}</p>}
           {song.subtitle && <p className="song-subtitle">{song.subtitle}</p>}

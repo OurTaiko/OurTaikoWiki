@@ -1,12 +1,18 @@
-import type { Song, SourceId } from '../types'
+import type { Song, SongCategory, SourceId } from '../types'
 
 const API_BASE = 'https://cdn.ourtaiko.org/api'
+
+interface RawCnSongType {
+  type?: string
+  sort?: number
+}
 
 interface RawCnSong {
   id: number
   sort?: number
   open_day?: string
   type?: string
+  types?: RawCnSongType[]
   song_name_jp?: string
   song_name?: string
   subtitle?: string | null
@@ -41,16 +47,30 @@ function normalizeLevel(value: number | string | undefined): number | string | n
   return value
 }
 
+function normalizeCnCategories(raw: RawCnSong): SongCategory[] {
+  if (Array.isArray(raw.types)) {
+    const categories = raw.types
+      .filter((item): item is RawCnSongType & { type: string } => typeof item?.type === 'string' && item.type !== '')
+      .map((item) => ({
+        type: item.type,
+        sort: typeof item.sort === 'number' && Number.isFinite(item.sort) ? item.sort : raw.sort ?? raw.id,
+      }))
+    if (categories.length > 0) return categories
+  }
+
+  // 兼容没有 types 字段的旧数据：退回到顶层 type/sort
+  return [{ type: raw.type || '未分类', sort: raw.sort ?? raw.id }]
+}
+
 function normalizeCnSong(raw: RawCnSong): Song {
   return {
     id: Number(raw.id),
     title: raw.song_name || raw.song_name_jp || `曲目 ${raw.id}`,
     titleJp: raw.song_name_jp || '',
     subtitle: raw.subtitle || '',
-    category: raw.type || '未分类',
+    categories: normalizeCnCategories(raw),
     family: typeof raw.family === 'string' ? raw.family : '',
     openDay: raw.open_day || '',
-    sort: raw.sort ?? raw.id,
     levels: {
       easy: normalizeLevel(raw.level_1),
       normal: normalizeLevel(raw.level_2),

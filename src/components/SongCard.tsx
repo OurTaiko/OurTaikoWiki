@@ -16,7 +16,7 @@ export function SongCard({ song, index }: { song: Song; index: number }) {
       <Link to={`/songs/${song.id}`} className="song-card__link" aria-label={`查看 ${song.title} 详情`}>
         <div className="song-card__index">NO. {String(song.id).padStart(4, '0')}</div>
         <div className="song-card__heading">
-          <span className="category-tag">{song.category.replace(/音乐$/, '')}</span>
+          <span className="category-tag">{song.categories[0]?.type.replace(/音乐$/, '') || '未分类'}</span>
           <ArrowUpRight className="song-card__arrow" />
         </div>
         <h2>{song.title}</h2>

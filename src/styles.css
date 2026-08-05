@@ -124,6 +124,7 @@
   .song-card__index { position: absolute; top: .5rem; right: .7rem; color: var(--line-strong); font: 700 .64rem var(--mono); letter-spacing: .08em; }
   .song-card__heading { display: flex; align-items: center; justify-content: space-between; margin-top: .35rem; }
   .category-tag { display: inline-flex; width: fit-content; padding: .28rem .52rem; color: var(--accent-deep); background: var(--accent-soft); border-left: 2px solid var(--accent); font-size: .68rem; font-weight: 800; letter-spacing: .06em; }
+  .song-category-list { display: flex; flex-wrap: wrap; gap: .35rem; }
   .song-card__arrow { color: var(--accent); opacity: 0; transform: translate(-4px, 4px); transition: opacity 160ms, transform 160ms; }
   .song-card:hover .song-card__arrow { opacity: 1; transform: none; }
   .song-card h2 { display: -webkit-box; overflow: hidden; margin-top: 1.25rem; font: 700 1.35rem/1.4 var(--display); -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
