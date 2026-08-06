@@ -14,10 +14,13 @@ interface WikiContextValue {
   error: string
   reload: () => void
   scores: ImportedScore[]
+  previousScores: ImportedScore[]
   saveScores: (scores: ImportedScore[]) => void
 }
 
 const WikiContext = createContext<WikiContextValue | null>(null)
+const SCORES_KEY = 'our-taiko-wiki:scores'
+const PREVIOUS_SCORES_KEY = 'our-taiko-wiki:previous-scores'
 const songCache = new Map<SourceId, Song[]>()
 const songRequestCache = new Map<SourceId, Promise<Song[]>>()
 
@@ -32,9 +35,9 @@ function requestSongs(sourceId: SourceId, forceReload: boolean) {
   return request
 }
 
-function readScores(): ImportedScore[] {
+function readStoredScores(key: string): ImportedScore[] {
   try {
-    const parsed: unknown = JSON.parse(localStorage.getItem('our-taiko-wiki:scores') || '[]')
+    const parsed: unknown = JSON.parse(localStorage.getItem(key) || '[]')
     return Array.isArray(parsed) ? parsed as ImportedScore[] : []
   } catch {
     return []
@@ -53,7 +56,10 @@ export function WikiProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(!songCache.has(sourceId))
   const [error, setError] = useState('')
   const [reloadKey, setReloadKey] = useState(0)
-  const [scores, setScores] = useState<ImportedScore[]>(readScores)
+  const [scores, setScores] = useState<ImportedScore[]>(() => readStoredScores(SCORES_KEY))
+  const [previousScores, setPreviousScores] = useState<ImportedScore[]>(() =>
+    readStoredScores(PREVIOUS_SCORES_KEY),
+  )
 
   useEffect(() => {
     document.body.dataset.theme = theme
@@ -109,13 +115,18 @@ export function WikiProvider({ children }: { children: ReactNode }) {
     error,
     reload: () => setReloadKey((key) => key + 1),
     scores,
+    previousScores,
     saveScores: (nextScores) => {
+      // 导入前留存一份“上次导入”快照，供 Rating 页对比增减幅
+      localStorage.setItem(PREVIOUS_SCORES_KEY, JSON.stringify(scores))
+      setPreviousScores(scores)
+
       const unique = new Map(nextScores.map((score) => [`${score.id}-${score.difficulty}`, score]))
       const merged = [...unique.values()]
-      localStorage.setItem('our-taiko-wiki:scores', JSON.stringify(merged))
+      localStorage.setItem(SCORES_KEY, JSON.stringify(merged))
       setScores(merged)
     },
-  }), [sourceId, theme, algoVersion, songs, loading, error, scores])
+  }), [sourceId, theme, algoVersion, songs, loading, error, scores, previousScores])
 
   return <WikiContext.Provider value={value}>{children}</WikiContext.Provider>
 }

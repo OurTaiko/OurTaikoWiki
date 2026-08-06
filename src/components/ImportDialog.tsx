@@ -60,7 +60,24 @@ export function ImportDialog({ open, onClose }: ImportDialogProps) {
 
       if (!imported.length) throw new Error('未识别到有效成绩，请检查数据格式或同步状态')
       saveScores([...scores, ...imported])
-      setMessage({ kind: 'success', text: `已导入 ${imported.length} 条谱面成绩` })
+
+      const deltaCounts = imported.reduce(
+        (counts, score) => {
+          const existing = scores.find((item) => item.id === score.id && item.difficulty === score.difficulty)
+          if (!existing) counts.fresh += 1
+          else if (score.highScore > existing.highScore) counts.up += 1
+          else if (score.highScore < existing.highScore) counts.down += 1
+          return counts
+        },
+        { up: 0, down: 0, fresh: 0 },
+      )
+      const changed = [
+        deltaCounts.up ? `提升 ${deltaCounts.up}` : '',
+        deltaCounts.down ? `下滑 ${deltaCounts.down}` : '',
+        deltaCounts.fresh ? `新增 ${deltaCounts.fresh}` : '',
+      ].filter(Boolean)
+      const summary = changed.length ? ` · 较上次导入 ${changed.join(' · ')}` : ''
+      setMessage({ kind: 'success', text: `已导入 ${imported.length} 条谱面成绩${summary}` })
     } catch (reason) {
       setMessage({ kind: 'error', text: reason instanceof Error ? reason.message : '导入失败' })
     } finally {

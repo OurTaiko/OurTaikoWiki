@@ -5,7 +5,7 @@ import { ImportDialog } from '../components/ImportDialog'
 import { RadarChart, type RadarMetric } from '../components/RadarChart'
 import { useWiki } from '../context/WikiContext'
 import { loadV1Constants, loadV2Constants } from '../data/constants'
-import type { V1Song, V2SongMap } from '../types'
+import type { ImportedScore, V1Song, V2SongMap } from '../types'
 import {
   ratingDimensionLabels,
   type RatingDimensionKey,
@@ -13,10 +13,41 @@ import {
 } from '../utils/rating'
 import { calculateV1Report } from '../utils/rating-v1'
 import { calculateV2Report } from '../utils/rating-v2'
+import {
+  buildScoreMap,
+  getScoreDelta,
+  type ScoreDeltaInfo,
+} from '../utils/scoreDelta'
 
 const DIFFICULTY_LABELS = ['简单', '普通', '困难', '魔王', '里魔王']
 
-function ResultTable({ report, dimension }: { report: RatingReport; dimension: RatingDimensionKey }) {
+function DeltaBadge({ info, currentScore }: { info: ScoreDeltaInfo; currentScore?: number }) {
+  const tooltip = info.previous === null
+    ? undefined
+    : `上次导入 ${info.previous.toLocaleString('en-US')} → 本次 ${(currentScore ?? 0).toLocaleString('en-US')}`
+
+  switch (info.kind) {
+    case 'none':
+      return <span className="delta-chip is-none" title="首次导入，暂无对比基准">—</span>
+    case 'new':
+      return <span className="delta-chip is-new" title="本次导入新增的成绩">NEW</span>
+    case 'same':
+      return <span className="delta-chip is-same" title={tooltip}>±0</span>
+    case 'up':
+      return <span className="delta-chip is-up" title={tooltip}>▲ {info.delta.toLocaleString('en-US')}</span>
+    case 'down':
+      return <span className="delta-chip is-down" title={tooltip}>▼ {Math.abs(info.delta).toLocaleString('en-US')}</span>
+  }
+}
+
+interface ResultTableProps {
+  report: RatingReport
+  dimension: RatingDimensionKey
+  scoreMap: Map<string, ImportedScore>
+  previousScoreMap: Map<string, ImportedScore>
+}
+
+function ResultTable({ report, dimension, scoreMap, previousScoreMap }: ResultTableProps) {
   const label = report.summary.find((item) => item.key === dimension)?.label || 'Rating'
   const entries = [...report.entries]
     .filter((entry) => Number.isFinite(entry.values[dimension]))
@@ -35,20 +66,25 @@ function ResultTable({ report, dimension }: { report: RatingReport; dimension: R
       <div className="rating-table-wrap">
         <table className="rating-table">
           <thead>
-            <tr><th>#</th><th>曲目</th><th>难度</th><th>综合良率</th><th>{label}</th><th>判定</th><th aria-label="查看曲目" /></tr>
+            <tr><th>#</th><th>曲目</th><th>难度</th><th>综合良率</th><th>{label}</th><th>判定</th><th>较上次导入</th><th aria-label="查看曲目" /></tr>
           </thead>
           <tbody>
-            {entries.map((entry, index) => (
-              <tr key={`${entry.id}-${entry.difficulty}`}>
-                <td><span className={`rank-number rank-${index + 1}`}>{String(index + 1).padStart(2, '0')}</span></td>
-                <td><Link to={`/songs/${entry.id}`}><strong>{entry.title}</strong><small>ID {entry.id}</small></Link></td>
-                <td><span className={`rating-difficulty difficulty-${entry.difficultyKey}`}>{DIFFICULTY_LABELS[entry.difficulty - 1]}</span></td>
-                <td className="rating-mono">{(entry.accuracy * 100).toFixed(2)}%</td>
-                <td className="rating-value">{entry.values[dimension]?.toFixed(2)}</td>
-                <td className="rating-judgements"><span>良 {entry.great}</span><span>可 {entry.good}</span><span>不可 {entry.bad}</span></td>
-                <td><Link className="rating-row-link" to={`/songs/${entry.id}`} aria-label={`查看 ${entry.title}`}><ArrowUpRight /></Link></td>
-              </tr>
-            ))}
+            {entries.map((entry, index) => {
+              const current = scoreMap.get(`${entry.id}-${entry.difficulty}`)
+              const delta = current ? getScoreDelta(current, previousScoreMap) : null
+              return (
+                <tr key={`${entry.id}-${entry.difficulty}`}>
+                  <td><span className={`rank-number rank-${index + 1}`}>{String(index + 1).padStart(2, '0')}</span></td>
+                  <td><Link to={`/songs/${entry.id}`}><strong>{entry.title}</strong><small>ID {entry.id}</small></Link></td>
+                  <td><span className={`rating-difficulty difficulty-${entry.difficultyKey}`}>{DIFFICULTY_LABELS[entry.difficulty - 1]}</span></td>
+                  <td className="rating-mono">{(entry.accuracy * 100).toFixed(2)}%</td>
+                  <td className="rating-value">{entry.values[dimension]?.toFixed(2)}</td>
+                  <td className="rating-judgements"><span>良 {entry.great}</span><span>可 {entry.good}</span><span>不可 {entry.bad}</span></td>
+                  <td>{delta && current ? <DeltaBadge info={delta} currentScore={current.highScore} /> : <span className="delta-chip is-none">—</span>}</td>
+                  <td><Link className="rating-row-link" to={`/songs/${entry.id}`} aria-label={`查看 ${entry.title}`}><ArrowUpRight /></Link></td>
+                </tr>
+              )
+            })}
           </tbody>
         </table>
       </div>
@@ -57,7 +93,7 @@ function ResultTable({ report, dimension }: { report: RatingReport; dimension: R
 }
 
 export function RatingPage() {
-  const { scores, songs, algoVersion } = useWiki()
+  const { scores, songs, algoVersion, previousScores } = useWiki()
   const [dimension, setDimension] = useState<RatingDimensionKey>('rating')
   const [v1, setV1] = useState<Map<number, V1Song>>()
   const [v2, setV2] = useState<V2SongMap>()
@@ -96,6 +132,24 @@ export function RatingPage() {
     .filter((item) => item.key !== 'rating')
     .map((item) => ({ label: item.label, value: item.value })) || [], [report])
 
+  const scoreMap = useMemo(() => buildScoreMap(scores), [scores])
+  const previousScoreMap = useMemo(() => buildScoreMap(previousScores), [previousScores])
+
+  const deltaSummary = useMemo(() => {
+    if (!report || previousScores.length === 0) return null
+    const counts = { up: 0, down: 0, same: 0, fresh: 0 }
+    report.entries.forEach((entry) => {
+      const current = scoreMap.get(`${entry.id}-${entry.difficulty}`)
+      if (!current) return
+      const info = getScoreDelta(current, previousScoreMap)
+      if (info.kind === 'up') counts.up += 1
+      else if (info.kind === 'down') counts.down += 1
+      else if (info.kind === 'same') counts.same += 1
+      else if (info.kind === 'new') counts.fresh += 1
+    })
+    return counts
+  }, [report, previousScores.length, scoreMap, previousScoreMap])
+
   const currentSummary = report?.summary.find((item) => item.key === dimension)
 
   return (
@@ -120,7 +174,20 @@ export function RatingPage() {
         <>
           <section className="rating-overview">
             <div className="rating-overview__main panel">
-              <header><div><span className="eyebrow"><BarChart3 size={14} /> OVERVIEW</span><h2>综合能力</h2></div><span>{report.entries.length} 首有效成绩</span></header>
+              <header>
+                <div><span className="eyebrow"><BarChart3 size={14} /> OVERVIEW</span><h2>综合能力</h2></div>
+                <span className="rating-overview__meta">
+                  <span>{report.entries.length} 首有效成绩</span>
+                  {deltaSummary && (
+                    <span className="rating-delta-summary" title="与上次导入对比（按成绩分数）">
+                      较上次导入
+                      <b className="is-up">▲ {deltaSummary.up}</b>
+                      <b className="is-down">▼ {deltaSummary.down}</b>
+                      <b className="is-new">NEW {deltaSummary.fresh}</b>
+                    </span>
+                  )}
+                </span>
+              </header>
               <div className="rating-scoreboard">
                 <div className="rating-total"><span>RATING</span><strong>{report.summary[0].value.toFixed(2)}</strong><small>{report.summary[0].compensated ? 'TOP 20 BONUS APPLIED' : `${algoVersion.toUpperCase()} REPORT`}</small></div>
                 <div className="rating-dimensions">
@@ -144,7 +211,7 @@ export function RatingPage() {
           </nav>
 
           {currentSummary?.compensated && <p className="rating-compensation-note"><Info size={14} />当前维度已达到高水平补偿区间，显示值包含 Top 20 稳定性补偿。</p>}
-          <ResultTable report={report} dimension={dimension} />
+          <ResultTable report={report} dimension={dimension} scoreMap={scoreMap} previousScoreMap={previousScoreMap} />
         </>
       )}
       <ImportDialog open={importOpen} onClose={() => setImportOpen(false)} />

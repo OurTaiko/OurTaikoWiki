@@ -43,6 +43,9 @@
     --radar-end: rgb(27 105 112 / 18%);
     --radar-ring-a: rgb(197 72 62 / 5%);
     --radar-ring-b: rgb(27 105 112 / 4%);
+    --delta-up: #17635f;
+    --delta-down: #b23c33;
+    --delta-new: #96701f;
   }
 
   body {
@@ -412,7 +415,7 @@
   .rating-ranking__header h2 { margin-top: .4rem; font: 700 1.5rem var(--display); }
   .rating-ranking__header p { color: var(--ink-soft); font-size: .7rem; }
   .rating-table-wrap { overflow-x: auto; }
-  .rating-table { width: 100%; min-width: 920px; border-collapse: collapse; font-size: .75rem; }
+  .rating-table { width: 100%; min-width: 1020px; border-collapse: collapse; font-size: .75rem; }
   .rating-table th { padding: .75rem 1rem; color: var(--ink-soft); background: var(--surface-soft); font-size: .65rem; text-align: left; letter-spacing: .06em; white-space: nowrap; }
   .rating-table th:nth-child(4), .rating-table th:nth-child(5), .rating-table td:nth-child(4), .rating-table td:nth-child(5) { text-align: right; }
   .rating-table td { height: 66px; padding: .65rem 1rem; border-bottom: 1px solid var(--line); }
@@ -434,6 +437,45 @@
   .rating-row-link { display: grid; width: 30px; height: 30px; place-items: center; color: var(--accent); border: 1px solid var(--line); border-radius: 50%; }
   .rating-row-link:hover { color: #fff; background: var(--accent); border-color: var(--accent); }
   .rating-row-link svg { width: 14px; }
+  .rating-overview__meta { display: grid; justify-items: end; gap: .4rem; }
+  .rating-delta-summary { display: inline-flex; align-items: center; gap: .5rem; color: var(--ink-soft); font: .66rem var(--mono); }
+  .rating-delta-summary b { font-weight: 750; }
+  .rating-delta-summary .is-up { color: var(--delta-up); }
+  .rating-delta-summary .is-down { color: var(--delta-down); }
+  .rating-delta-summary .is-new { color: var(--delta-new); }
+  .delta-chip {
+    display: inline-flex;
+    min-width: 60px;
+    padding: .26rem .5rem;
+    align-items: center;
+    justify-content: center;
+    gap: .28rem;
+    color: var(--ink-soft);
+    background: var(--surface-solid);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-small);
+    font: 750 .68rem var(--mono);
+    white-space: nowrap;
+  }
+  .delta-chip.is-up {
+    color: var(--delta-up);
+    background: color-mix(in srgb, var(--delta-up) 8%, var(--surface-solid));
+    border-color: color-mix(in srgb, var(--delta-up) 45%, var(--line));
+  }
+  .delta-chip.is-down {
+    color: var(--delta-down);
+    background: color-mix(in srgb, var(--delta-down) 8%, var(--surface-solid));
+    border-color: color-mix(in srgb, var(--delta-down) 45%, var(--line));
+  }
+  .delta-chip.is-new {
+    color: var(--delta-new);
+    background: color-mix(in srgb, var(--delta-new) 8%, var(--surface-solid));
+    border-color: color-mix(in srgb, var(--delta-new) 55%, var(--line));
+    border-style: dashed;
+    letter-spacing: .12em;
+  }
+  .delta-chip.is-same { border-color: var(--line); }
+  .delta-chip.is-none { min-width: 34px; color: var(--ink-soft); background: transparent; border: 0; opacity: .55; }
 
   .site-footer { display: flex; width: min(1220px, calc(100% - 40px)); min-height: 96px; margin-inline: auto; align-items: center; justify-content: space-between; color: var(--ink-soft); border-top: 1px solid var(--line); font-size: .72rem; }
   .site-footer span { color: var(--ink); font: 800 .7rem var(--mono); letter-spacing: .16em; }
@@ -513,6 +555,9 @@
     --radar-end: rgb(142 125 98 / 10%);
     --radar-ring-a: rgb(244 229 178 / 6%);
     --radar-ring-b: rgb(130 164 176 / 4%);
+    --delta-up: #9fd0da;
+    --delta-down: #dd9a93;
+    --delta-new: #f4e5b2;
     background:
       radial-gradient(circle at 13% 2%, rgb(108 103 101 / 20%), transparent 28rem),
       linear-gradient(120deg, transparent 0 72%, rgb(213 189 114 / 3%) 72% 72.15%, transparent 72.15%),
@@ -581,6 +626,7 @@
   body[data-theme="ffxiv"] .radar-card { background: #383735; }
   body[data-theme="ffxiv"] .form-message.is-success { color: #d4e6d4; background: #395443; }
   body[data-theme="ffxiv"] .form-message.is-error { color: #f0c2c2; background: #5e3939; }
+  body[data-theme="ffxiv"] .delta-chip { box-shadow: inset 0 1px rgb(255 255 255 / 10%); }
 }
 
 @layer responsive {
