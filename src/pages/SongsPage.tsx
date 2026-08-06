@@ -6,8 +6,19 @@ import { difficultyMeta } from '../components/DifficultyBadge'
 import { useWiki } from '../context/WikiContext'
 import { difficultyKeys, type DifficultyKey, type ImportedScore, type Song } from '../types'
 
-type SortMode = 'id' | 'openDay' | 'oni' | 'title' | 'category'
+type SortMode = 'id' | 'openDay' | 'category' | DifficultyKey
 const PAGE_SIZE = 24
+
+const sortOptions: Array<{ mode: SortMode; label: string }> = [
+  { mode: 'id', label: '曲目ID' },
+  { mode: 'openDay', label: '上线时间' },
+  { mode: 'category', label: '分类顺序' },
+  { mode: 'oni', label: '魔王' },
+  { mode: 'ura', label: '里魔王' },
+  { mode: 'easy', label: '简单' },
+  { mode: 'normal', label: '一般' },
+  { mode: 'hard', label: '困难' },
+]
 
 interface PlayFilter {
   fullCombo: boolean
@@ -31,16 +42,14 @@ function categorySortValue(song: Song, category: string): number {
 function compareSongs(mode: SortMode, reverse: boolean, category: string) {
   return (a: Song, b: Song) => {
     let result = 0
-    if (mode === 'title') {
-      result = a.title.localeCompare(b.title, 'zh-CN') || a.id - b.id
-    } else if (mode === 'oni') {
-      result = Number(b.levels.oni || 0) - Number(a.levels.oni || 0) || b.id - a.id
-    } else if (mode === 'openDay') {
+    if (mode === 'openDay') {
       result = dateValue(b.openDay) - dateValue(a.openDay) || b.id - a.id
     } else if (mode === 'category') {
       result = categorySortValue(a, category) - categorySortValue(b, category) || a.id - b.id
-    } else {
+    } else if (mode === 'id') {
       result = a.id - b.id
+    } else {
+      result = Number(b.levels[mode] || 0) - Number(a.levels[mode] || 0) || b.id - a.id
     }
     return reverse ? -result : result
   }
@@ -148,17 +157,27 @@ export function SongsPage() {
           </div>
         </div>
         <div className="toolbar-row toolbar-row--sort">
-          <label className="sort-select"><SlidersHorizontal size={16} /><span>排序</span>
-            <select value={sort} onChange={(event) => {
-              setSort(event.target.value as SortMode)
-              setReverse(false)
-            }}>
-              <option value="id">曲目 ID</option>
-              <option value="openDay">上线时间</option>
-              <option value="oni">魔王星级</option>
-              <option value="title">曲名</option>
-              <option value="category" disabled={category === '全部'}>分类顺序</option>
-            </select>
+          <div className="sort-chips" role="group" aria-label="排序方式">
+            <span className="sort-chips__label"><SlidersHorizontal size={16} />排序</span>
+            {sortOptions.map(({ mode, label }) => {
+              const categoryDisabled = mode === 'category' && category === '全部'
+              return (
+                <button
+                  key={mode}
+                  type="button"
+                  className={`sort-chip${sort === mode ? ' is-active' : ''}`}
+                  onClick={() => {
+                    if (categoryDisabled) return
+                    setSort(mode)
+                    setReverse(false)
+                  }}
+                  disabled={categoryDisabled}
+                  aria-pressed={sort === mode}
+                >
+                  {label}
+                </button>
+              )
+            })}
             <button
               type="button"
               className={`sort-direction${reverse ? ' is-reversed' : ''}`}
@@ -167,7 +186,7 @@ export function SongsPage() {
             >
               {reverse ? <ArrowUp /> : <ArrowDown />}
             </button>
-          </label>
+          </div>
           <button
             type="button"
             className={`advanced-toggle${advancedOpen ? ' is-open' : ''}`}

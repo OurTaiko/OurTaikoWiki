@@ -107,8 +107,13 @@
   .category-scroll button:hover { border-color: var(--line); }
   .category-scroll button.is-active { color: #fff; background: var(--accent); border-color: var(--accent); }
   .category-scroll button span { margin-left: .25rem; opacity: .62; font: .68rem var(--mono); }
-  .sort-select { display: flex; width: fit-content; align-items: center; gap: .4rem; color: var(--ink-soft); font-size: .76rem; font-weight: 700; }
-  .sort-select select { padding: .45rem 1.8rem .45rem .5rem; color: var(--ink); background: var(--surface-solid); border: 1px solid var(--line); }
+  .sort-chips { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; min-width: 0; color: var(--ink-soft); font-size: .76rem; font-weight: 700; }
+  .sort-chips__label { display: inline-flex; align-items: center; gap: .4rem; }
+  .sort-chips__label svg { color: var(--accent); }
+  .sort-chip { padding: .42rem .68rem; color: var(--ink-soft); background: var(--surface-solid); border: 1px solid var(--line); border-radius: var(--radius-small); font-size: .78rem; font-weight: 700; transition: color 140ms ease, border-color 140ms ease, opacity 140ms ease; }
+  .sort-chip:hover:not(:disabled) { color: var(--accent); border-color: var(--accent); }
+  .sort-chip.is-active { color: #fff; background: var(--accent); border-color: var(--accent); }
+  .sort-chip:disabled { opacity: .4; cursor: not-allowed; }
   .sort-direction { display: grid; width: 32px; height: 32px; padding: 0; place-items: center; color: var(--ink-soft); background: var(--surface-solid); border: 1px solid var(--line); border-radius: var(--radius-small); transition: color 140ms ease, border-color 140ms ease; }
   .sort-direction svg { width: 15px; }
   .sort-direction:hover, .sort-direction.is-reversed { color: var(--accent); border-color: var(--accent); }
@@ -528,7 +533,7 @@
   body[data-theme="ffxiv"] .brand em { color: var(--accent); }
   body[data-theme="ffxiv"] .compact-select,
   body[data-theme="ffxiv"] .search-box,
-  body[data-theme="ffxiv"] .sort-select select,
+  body[data-theme="ffxiv"] .sort-chip,
   body[data-theme="ffxiv"] .sort-direction,
   body[data-theme="ffxiv"] .advanced-toggle,
   body[data-theme="ffxiv"] .difficulty-chip,
@@ -550,6 +555,7 @@
   body[data-theme="ffxiv"] .single-rating-card__score { background: #292827; border: 1px solid var(--line); }
   body[data-theme="ffxiv"] .single-rating-card > header > div > span { color: #302e29; }
   body[data-theme="ffxiv"] .category-scroll button.is-active,
+  body[data-theme="ffxiv"] .sort-chip.is-active,
   body[data-theme="ffxiv"] .v2-constants .is-main { color: #302e29; background: var(--accent); }
   body[data-theme="ffxiv"] .advanced-search { background: rgb(48 48 48 / 72%); border-color: #4d473c; }
   body[data-theme="ffxiv"] .difficulty-chip.is-active { border-color: var(--difficulty, var(--accent)); background: var(--difficulty, var(--accent)); }
@@ -604,7 +610,7 @@
     .catalog-toolbar { padding: .8rem; }
     .toolbar-row { grid-template-columns: minmax(0, 1fr); min-width: 0; }
     .category-scroll { min-width: 0; }
-    .sort-select { width: fit-content; }
+    .sort-chips { width: 100%; }
     .advanced-search__group { grid-template-columns: 1fr; gap: .45rem; }
     .star-filter { width: 100%; }
     .difficulty-filter__actions { margin-left: 0; }
