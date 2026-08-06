@@ -1,11 +1,22 @@
 import { useDeferredValue, useEffect, useMemo, useState } from 'react'
-import { ArrowDown, ArrowUp, ChevronLeft, ChevronRight, Database, RefreshCw, Search, SlidersHorizontal } from 'lucide-react'
+import { ArrowDown, ArrowUp, ChevronDown, ChevronLeft, ChevronRight, Database, RefreshCw, Search, SlidersHorizontal } from 'lucide-react'
 import { SongCard } from '../components/SongCard'
+import { StarRangeSlider } from '../components/StarRangeSlider'
+import { difficultyMeta } from '../components/DifficultyBadge'
 import { useWiki } from '../context/WikiContext'
-import type { Song } from '../types'
+import { difficultyKeys, type DifficultyKey, type ImportedScore, type Song } from '../types'
 
 type SortMode = 'id' | 'openDay' | 'oni' | 'title' | 'category'
 const PAGE_SIZE = 24
+
+interface PlayFilter {
+  fullCombo: boolean
+  perfect: boolean
+  clear: boolean
+  play: boolean
+}
+
+const initialPlayFilter: PlayFilter = { fullCombo: false, perfect: false, clear: false, play: false }
 
 function dateValue(value: string) {
   if (!value) return 0
@@ -36,13 +47,19 @@ function compareSongs(mode: SortMode, reverse: boolean, category: string) {
 }
 
 export function SongsPage() {
-  const { songs, loading, error, reload } = useWiki()
+  const { songs, scores, loading, error, reload } = useWiki()
   const [query, setQuery] = useState('')
   const deferredQuery = useDeferredValue(query.trim().toLocaleLowerCase())
   const [category, setCategory] = useState('全部')
   const [sort, setSort] = useState<SortMode>('id')
   const [reverse, setReverse] = useState(false)
   const [page, setPage] = useState(1)
+  const [advancedOpen, setAdvancedOpen] = useState(false)
+  const [selectedDifficulties, setSelectedDifficulties] = useState<ReadonlySet<DifficultyKey>>(
+    () => new Set(difficultyKeys),
+  )
+  const [starRange, setStarRange] = useState<[number, number]>([1, 10])
+  const [playFilters, setPlayFilters] = useState<PlayFilter>(initialPlayFilter)
 
   const categories = useMemo(() => {
     const counts = new Map<string, number>()
@@ -54,21 +71,55 @@ export function SongsPage() {
     return [...counts.entries()].sort((a, b) => b[1] - a[1])
   }, [songs])
 
-  const filteredSongs = useMemo(() => songs
-    .filter((song) => category === '全部' || song.categories.some((item) => item.type === category))
-    .filter((song) => {
-      if (!deferredQuery) return true
-      return [song.title, song.titleJp, song.subtitle, String(song.id)]
-        .some((value) => value.toLocaleLowerCase().includes(deferredQuery))
+  const filteredSongs = useMemo(() => {
+    const scoreIndex = new Map<string, ImportedScore>()
+    for (const score of scores) scoreIndex.set(`${score.id}-${score.difficulty}`, score)
+
+    const matchesAdvanced = (song: Song): boolean => difficultyKeys.some((key) => {
+      const level = song.levels[key]
+      if (level === null || !selectedDifficulties.has(key)) return false
+      const stars = Number(level)
+      if (!Number.isFinite(stars) || stars < starRange[0] || stars > starRange[1]) return false
+      const score = scoreIndex.get(`${song.id}-${difficultyMeta[key].index}`)
+      if (playFilters.fullCombo && (!score || score.fullCombos < 1)) return false
+      if (playFilters.perfect && (!score || score.perfects < 1)) return false
+      if (playFilters.clear && (!score || score.clears < 1)) return false
+      if (playFilters.play && (!score || score.plays < 1)) return false
+      return true
     })
-    .sort(compareSongs(sort, reverse, category)), [songs, category, deferredQuery, sort, reverse])
+
+    return songs
+      .filter((song) => category === '全部' || song.categories.some((item) => item.type === category))
+      .filter((song) => {
+        if (!deferredQuery) return true
+        return [song.title, song.titleJp, song.subtitle, String(song.id)]
+          .some((value) => value.toLocaleLowerCase().includes(deferredQuery))
+      })
+      .filter(matchesAdvanced)
+      .sort(compareSongs(sort, reverse, category))
+  }, [songs, category, deferredQuery, sort, reverse, scores, selectedDifficulties, starRange, playFilters])
+
+  const advancedActiveCount =
+    (difficultyKeys.length - selectedDifficulties.size) +
+    (starRange[0] > 1 || starRange[1] < 10 ? 1 : 0) +
+    Number(playFilters.fullCombo) + Number(playFilters.perfect) +
+    Number(playFilters.clear) + Number(playFilters.play)
+
+  const toggleDifficulty = (key: DifficultyKey) => {
+    setSelectedDifficulties((current) => {
+      const next = new Set(current)
+      if (next.has(key)) next.delete(key)
+      else next.add(key)
+      return next
+    })
+  }
 
   const totalPages = Math.max(1, Math.ceil(filteredSongs.length / PAGE_SIZE))
   const visibleSongs = filteredSongs.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
   useEffect(() => {
     setPage(1)
-  }, [category, deferredQuery, sort, reverse])
+  }, [category, deferredQuery, sort, reverse, selectedDifficulties, starRange, playFilters])
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -95,6 +146,8 @@ export function SongsPage() {
               <button key={name} className={category === name ? 'is-active' : ''} onClick={() => setCategory(name)}>{name.replace(/音乐$/, '')} <span>{count}</span></button>
             ))}
           </div>
+        </div>
+        <div className="toolbar-row toolbar-row--sort">
           <label className="sort-select"><SlidersHorizontal size={16} /><span>排序</span>
             <select value={sort} onChange={(event) => {
               setSort(event.target.value as SortMode)
@@ -115,7 +168,73 @@ export function SongsPage() {
               {reverse ? <ArrowUp /> : <ArrowDown />}
             </button>
           </label>
+          <button
+            type="button"
+            className={`advanced-toggle${advancedOpen ? ' is-open' : ''}`}
+            onClick={() => setAdvancedOpen((value) => !value)}
+            aria-expanded={advancedOpen}
+            aria-controls="advanced-search"
+          >
+            <SlidersHorizontal size={15} />
+            <span>使用高级搜索</span>
+            {advancedActiveCount > 0 && <b className="advanced-toggle__count">{advancedActiveCount}</b>}
+            <ChevronDown size={15} className={`advanced-toggle__chevron${advancedOpen ? ' is-rotated' : ''}`} />
+          </button>
         </div>
+        {advancedOpen && (
+          <div id="advanced-search" className="advanced-search">
+            <div className="advanced-search__group">
+              <span className="advanced-search__label">难度</span>
+              <div className="advanced-search__row difficulty-filter">
+                {difficultyKeys.map((key) => (
+                  <button
+                    key={key}
+                    type="button"
+                    className={`difficulty-chip difficulty-${key}${selectedDifficulties.has(key) ? ' is-active' : ''}`}
+                    onClick={() => toggleDifficulty(key)}
+                    aria-pressed={selectedDifficulties.has(key)}
+                  >
+                    <span className="difficulty-chip__mark">{difficultyMeta[key].short}</span>
+                    <span className="difficulty-chip__label">{difficultyMeta[key].label}</span>
+                  </button>
+                ))}
+                <span className="difficulty-filter__actions">
+                  <button type="button" onClick={() => setSelectedDifficulties(new Set(difficultyKeys))}>全选</button>
+                  <button type="button" onClick={() => setSelectedDifficulties(new Set())}>清空</button>
+                </span>
+              </div>
+            </div>
+            <div className="advanced-search__group">
+              <span className="advanced-search__label">星级</span>
+              <div className="advanced-search__row star-filter">
+                <StarRangeSlider value={starRange} onChange={setStarRange} />
+              </div>
+            </div>
+            <div className="advanced-search__group">
+              <span className="advanced-search__label">游玩状态</span>
+              <div className="advanced-search__row play-filter">
+                {(
+                  [
+                    ['fullCombo', '已全连'],
+                    ['perfect', '全良'],
+                    ['clear', '过关'],
+                    ['play', '游玩'],
+                  ] as const
+                ).map(([key, label]) => (
+                  <label key={key} className="play-check">
+                    <input
+                      type="checkbox"
+                      checked={playFilters[key]}
+                      onChange={(event) => setPlayFilters((current) => ({ ...current, [key]: event.target.checked }))}
+                    />
+                    <span>{label}</span>
+                  </label>
+                ))}
+                <span className="play-filter__hint">勾选的状态需全部满足</span>
+              </div>
+            </div>
+          </div>
+        )}
       </section>
 
       <div className="catalog-meta">
