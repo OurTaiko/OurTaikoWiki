@@ -147,7 +147,7 @@
   .difficulty-badge.is-empty { filter: grayscale(1); opacity: .28; }
   .song-card footer { display: flex; min-height: 23px; align-items: end; justify-content: space-between; gap: .5rem; margin-top: .85rem; padding-top: .75rem; color: var(--ink-soft); border-top: 1px dashed var(--line); font-size: .69rem; }
   .song-card footer span { display: inline-flex; align-items: center; gap: .3rem; }
-  .song-card footer .personal-best { color: var(--gold); font-family: var(--mono); font-weight: 700; }
+  .song-card footer .personal-best { z-index: 1; color: var(--gold); font-family: var(--mono); font-weight: 700; }
   .song-card.skeleton { min-height: 260px; background: linear-gradient(100deg, var(--surface-soft) 25%, var(--surface-solid) 42%, var(--surface-soft) 60%); background-size: 200% 100%; animation: shimmer 1.3s infinite linear; }
   @keyframes shimmer { to { background-position-x: -200%; } }
 

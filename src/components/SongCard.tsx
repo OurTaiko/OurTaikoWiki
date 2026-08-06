@@ -26,8 +26,8 @@ export function SongCard({ song, index }: { song: Song; index: number }) {
           <ArrowUpRight className="song-card__arrow" />
         </div>
         <h2>{song.title}</h2>
-        {(song.subtitle || (song.titleJp && song.titleJp !== song.title)) && (
-          <p>{song.subtitle || song.titleJp}</p>
+        {song.subtitle && (
+          <p>{song.subtitle}</p>
         )}
         <div className="song-card__levels">
           {difficultyKeys.map((difficulty) => <DifficultyBadge key={difficulty} difficulty={difficulty} value={song.levels[difficulty]} />)}
