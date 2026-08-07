@@ -3,8 +3,9 @@ import { GitBranch, LoaderCircle, MousePointerClick, RotateCcw, ZoomIn, ZoomOut 
 import type { HitInfo } from '../../TJARenderer/src/hit-testing'
 import { createChartView, type ChartView, type ChartViewOptions } from '../../TJARenderer/src/internal'
 import { INSETS } from '../../TJARenderer/src/layout'
-import { BranchName, DEFAULT_RENDER_OPTIONS, NoteType, type NoteLocation, type RenderOptions } from '../../TJARenderer/src/primitives'
+import { BranchName, DEFAULT_RENDER_OPTIONS, type NoteLocation, type RenderOptions } from '../../TJARenderer/src/primitives'
 import { parseTJA, type ParsedChart } from '../../TJARenderer/src/tja-parser'
+import { getGapMeasures, getGapMs, LongNoteHandling } from '../utils/note-gap'
 
 const ESE_MAPPING_URL = 'https://cdn.ourtaiko.org/api/ese_mapping'
 const ESE_RAW_BASE = 'https://ghproxy.vanillaaaa.org/https://ese.tjadataba.se/ESE/ESE/raw/branch/master/'
@@ -17,18 +18,6 @@ const COURSE_LABELS: Record<string, string> = {
   hard: 'Hard',
   oni: 'Oni',
   edit: 'Oni (Ura)',
-}
-
-const NOTE_LABELS: Record<string, string> = {
-  [NoteType.Don]: '咚（红）',
-  [NoteType.Ka]: '咔（蓝）',
-  [NoteType.DonBig]: '大咚（红）',
-  [NoteType.KaBig]: '大咔（蓝）',
-  [NoteType.Drumroll]: '连打（红）',
-  [NoteType.DrumrollBig]: '大连打（红）',
-  [NoteType.Balloon]: '气球',
-  [NoteType.End]: '连打结束',
-  [NoteType.Kusudama]: '金达摩',
 }
 
 const BRANCH_LABELS: Record<string, string> = {
@@ -62,9 +51,28 @@ function formatBpm(value: number | undefined): string {
   return value % 1 === 0 ? value.toFixed(0) : value.toFixed(2)
 }
 
-function formatScroll(value: number | undefined): string {
-  if (value === undefined || !Number.isFinite(value)) return '—'
-  return value % 1 === 0 ? value.toFixed(1) : value.toFixed(2)
+function format目视速度(bpm: number | undefined, hs: number | undefined): string {
+  if (bpm === undefined || hs === undefined || !Number.isFinite(bpm) || !Number.isFinite(hs)) return '—'
+  const BPM = formatBpm(bpm)
+  const HS = formatBpm(hs)
+  const 目视速度 = (bpm * hs) % 1 === 0 ? (bpm * hs).toFixed(1) : (bpm * hs).toFixed(2)
+  return `${BPM} × ${HS} = ${目视速度}`
+}
+
+const GAP_OPTIONS = { longNoteHandling: LongNoteHandling.Strict, maxMeasures: 1 } as const
+
+function formatGapMeasures(gap: number): string {
+  const commonDenominators = [4, 8, 12, 16, 24, 32, 48, 64]
+  for (const d of commonDenominators) {
+    const val = gap * d
+    if (Math.abs(val - Math.round(val)) < 0.001) {
+      const num = Math.round(val)
+      const gcd = (a: number, b: number): number => (b ? gcd(b, a % b) : a)
+      const divisor = gcd(num, d)
+      return `${num / divisor}/${d / divisor}`
+    }
+  }
+  return gap.toFixed(3)
 }
 
 export function ChartPreview({ songId, preferredDifficulty }: ChartPreviewProps) {
@@ -168,6 +176,15 @@ export function ChartPreview({ songId, preferredDifficulty }: ChartPreviewProps)
     if (branchView === 'all') return rootChart
     return rootChart.branches?.[branchView] ?? rootChart
   }, [rootChart, branchView])
+
+  const gapInfo = useMemo(() => {
+    if (!info || !currentChart || info.location.charIndex < 0) return null
+    const { barIndex, charIndex } = info.location
+    const measures = getGapMeasures(currentChart, barIndex, charIndex, GAP_OPTIONS)
+    if (measures === null) return null
+    const ms = getGapMs(currentChart, barIndex, charIndex, GAP_OPTIONS)
+    return { measures, ms }
+  }, [info, currentChart])
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -387,21 +404,16 @@ export function ChartPreview({ songId, preferredDifficulty }: ChartPreviewProps)
       </div>
 
       <div className="chart-preview__info">
-        {info ? (
-          <>
-            <div className="chart-preview__stat"><span>音符</span><strong>{NOTE_LABELS[info.type] ?? info.type}</strong></div>
-            <div className="chart-preview__stat"><span>位置</span><strong>{info.location.barIndex + 1} 小节 · {info.location.charIndex + 1} 列</strong></div>
-            <div className="chart-preview__stat"><span>BPM</span><strong>{formatBpm(info.bpm)}</strong></div>
-            <div className="chart-preview__stat"><span>HS</span><strong>{formatScroll(info.scroll)}</strong></div>
-            {hasBranches && info.location.branch && (
-              <div className="chart-preview__stat"><span>分支</span><strong>{BRANCH_LABELS[info.location.branch] ?? info.location.branch}</strong></div>
-            )}
-            {info.branchStartParams && (
-              <div className="chart-preview__stat chart-preview__stat--wide"><span>分支条件</span><strong>{info.branchStartParams.type} · N &lt; {info.branchStartParams.p1} · E &lt; {info.branchStartParams.p2}</strong></div>
-            )}
-          </>
-        ) : (
-          <p className="chart-preview__hint">悬停或点击谱面音符可查看详细信息，点击可框选区间。</p>
+        <div className="chart-preview__stat chart-preview__stat--wide" title="与上一音符的间隔（严格模式，限制 1 小节内）">
+          <span>间隔</span>
+          <strong>{gapInfo ? `${formatGapMeasures(gapInfo.measures)} 小节 · ${gapInfo.ms === null ? '—' : `${(gapInfo.ms / 1000).toFixed(3)}s`}` : '—'}</strong>
+        </div>
+        <div className="chart-preview__stat chart-preview__stat--wide"><span>BPM * HS = 目押速度</span><strong>{info ? format目视速度(info.bpm, info.scroll) : '—'}</strong></div>
+        {hasBranches && (
+          <div className="chart-preview__stat"><span>分支</span><strong>{info?.location.branch ? BRANCH_LABELS[info.location.branch] ?? info.location.branch : '—'}</strong></div>
+        )}
+        {hasBranches && (
+          <div className="chart-preview__stat chart-preview__stat--wide"><span>分支条件</span><strong>{info?.branchStartParams ? `${info.branchStartParams.type} · N &lt; ${info.branchStartParams.p1} · E &lt; ${info.branchStartParams.p2}` : '—'}</strong></div>
         )}
       </div>
     </div>
