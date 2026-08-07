@@ -85,8 +85,8 @@ export function ChartPreview({ songId, preferredDifficulty }: ChartPreviewProps)
   const optionsRef = useRef<RenderOptions>({ ...DEFAULT_RENDER_OPTIONS, beatsPerLine: 16, showAllBranches: true, showAttribution: true, tjaSourceName: 'ESE' })
   const selectedRef = useRef<HitInfo | null>(null)
   const hoveredRef = useRef<HitInfo | null>(null)
-  const clickHandlerRef = useRef<(hit: HitInfo | null) => void>(() => {})
-  const hoverHandlerRef = useRef<(hit: HitInfo | null) => void>(() => {})
+  const clickHandlerRef = useRef<(hit: HitInfo | null) => void>(() => { })
+  const hoverHandlerRef = useRef<(hit: HitInfo | null) => void>(() => { })
   const preferredDifficultyRef = useRef(preferredDifficulty)
 
   const info = selected ?? hovered
@@ -102,42 +102,42 @@ export function ChartPreview({ songId, preferredDifficulty }: ChartPreviewProps)
 
     const preferred = preferredDifficultyRef.current?.toLowerCase() === 'ura' ? 'edit' : preferredDifficultyRef.current?.toLowerCase()
 
-    ;(async () => {
-      try {
-        const mappingResponse = await fetch(ESE_MAPPING_URL)
-        if (!mappingResponse.ok) {
-          throw new Error(`谱面映射文件获取失败（HTTP ${mappingResponse.status}）`)
-        }
-        const mapping: unknown = await mappingResponse.json()
-        const relativePath = typeof mapping === 'object' && mapping !== null
-          ? (mapping as Record<string, unknown>)[String(songId)]
-          : undefined
-        if (typeof relativePath !== 'string' || relativePath.trim() === '') {
-          throw new Error('这首曲目暂时没有收录在 ESE 谱面库中（映射缺失或路径为空）')
-        }
+      ; (async () => {
+        try {
+          const mappingResponse = await fetch(ESE_MAPPING_URL)
+          if (!mappingResponse.ok) {
+            throw new Error(`谱面映射文件获取失败（HTTP ${mappingResponse.status}）`)
+          }
+          const mapping: unknown = await mappingResponse.json()
+          const relativePath = typeof mapping === 'object' && mapping !== null
+            ? (mapping as Record<string, unknown>)[String(songId)]
+            : undefined
+          if (typeof relativePath !== 'string' || relativePath.trim() === '') {
+            throw new Error('这首曲目暂时没有收录在 ESE 谱面库中（映射缺失或路径为空）')
+          }
 
-        const path = relativePath.trim().replace(/\\/g, '/')
-        const response = await fetch(`${ESE_RAW_BASE}${encodePath(path)}`)
-        if (!response.ok) {
-          throw new Error(`谱面文件获取失败（HTTP ${response.status}）`)
-        }
-        const text = await response.text()
-        const charts = parseTJA(text.replace(/^\uFEFF/, ''))
-        const courses = Object.keys(charts)
-        if (courses.length === 0) {
-          throw new Error('TJA 文件解析失败：没有找到任何难度谱面')
-        }
-        if (!active) return
+          const path = relativePath.trim().replace(/\\/g, '/')
+          const response = await fetch(`${ESE_RAW_BASE}${encodePath(path)}`)
+          if (!response.ok) {
+            throw new Error(`谱面文件获取失败（HTTP ${response.status}）`)
+          }
+          const text = await response.text()
+          const charts = parseTJA(text.replace(/^\uFEFF/, ''))
+          const courses = Object.keys(charts)
+          if (courses.length === 0) {
+            throw new Error('TJA 文件解析失败：没有找到任何难度谱面')
+          }
+          if (!active) return
 
-        setParsed(charts)
-        setCourse(preferred && charts[preferred] ? preferred : charts.oni ? 'oni' : courses[0])
-        setPhase('ready')
-      } catch (reason) {
-        if (!active) return
-        setErrorMessage(reason instanceof Error ? reason.message : '谱面加载失败')
-        setPhase('error')
-      }
-    })()
+          setParsed(charts)
+          setCourse(preferred && charts[preferred] ? preferred : charts.oni ? 'oni' : courses[0])
+          setPhase('ready')
+        } catch (reason) {
+          if (!active) return
+          setErrorMessage(reason instanceof Error ? reason.message : '谱面加载失败')
+          setPhase('error')
+        }
+      })()
 
     return () => {
       active = false
@@ -392,7 +392,7 @@ export function ChartPreview({ songId, preferredDifficulty }: ChartPreviewProps)
             <div className="chart-preview__stat"><span>音符</span><strong>{NOTE_LABELS[info.type] ?? info.type}</strong></div>
             <div className="chart-preview__stat"><span>位置</span><strong>{info.location.barIndex + 1} 小节 · {info.location.charIndex + 1} 列</strong></div>
             <div className="chart-preview__stat"><span>BPM</span><strong>{formatBpm(info.bpm)}</strong></div>
-            <div className="chart-preview__stat"><span>滚动速度</span><strong>{formatScroll(info.scroll)}</strong></div>
+            <div className="chart-preview__stat"><span>HS</span><strong>{formatScroll(info.scroll)}</strong></div>
             {hasBranches && info.location.branch && (
               <div className="chart-preview__stat"><span>分支</span><strong>{BRANCH_LABELS[info.location.branch] ?? info.location.branch}</strong></div>
             )}
