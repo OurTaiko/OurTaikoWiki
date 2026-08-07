@@ -6,6 +6,7 @@ import { RatingPage } from './pages/RatingPage'
 import { SettingsPage } from './pages/SettingsPage'
 import { MigratePage } from './pages/MigratePage'
 import { AboutPage } from './pages/AboutPage'
+import { ConstantsComparePage } from './pages/ConstantsComparePage'
 
 function Layout() {
   return (
@@ -31,6 +32,7 @@ export default function App() {
         <Route path="settings" element={<SettingsPage />} />
         <Route path="migrate" element={<MigratePage />} />
         <Route path="about" element={<AboutPage />} />
+        <Route path="test/constants" element={<ConstantsComparePage />} />
         <Route path="*" element={<Navigate to="/songs" replace />} />
       </Route>
     </Routes>
