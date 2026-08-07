@@ -50,6 +50,13 @@ function rowDiffCount(row: CompareRow): number {
   return FIELDS.reduce((count, field) => count + (valuesDiffer(row.a?.[field.key], row.b?.[field.key]) ? 1 : 0), 0)
 }
 
+function deltaOf(row: CompareRow, field: keyof V2Difficulty): number | null {
+  const a = row.a?.[field]
+  const b = row.b?.[field]
+  if (a === undefined || b === undefined) return null
+  return b - a
+}
+
 function isV2SongMap(value: unknown): value is V2SongMap {
   if (typeof value !== 'object' || value === null || Array.isArray(value)) return false
   return Object.values(value).every((song) => {
@@ -105,6 +112,8 @@ export function ConstantsComparePage() {
   const [difficultyFilter, setDifficultyFilter] = useState<'all' | V2DifficultyKey>('all')
   const [onlyDiff, setOnlyDiff] = useState(false)
   const [search, setSearch] = useState('')
+  const [sortField, setSortField] = useState<keyof V2Difficulty | null>(null)
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
   const scrollRef = useRef<HTMLDivElement | null>(null)
   const rafRef = useRef(0)
   const [scrollTop, setScrollTop] = useState(0)
@@ -157,19 +166,30 @@ export function ConstantsComparePage() {
   const filteredRows = useMemo(() => {
     if (!summary) return []
     const query = search.trim().toLowerCase()
-    return summary.rows.filter((row) => {
+    const rows = summary.rows.filter((row) => {
       if (difficultyFilter !== 'all' && row.difficulty !== difficultyFilter) return false
       if (onlyDiff && rowDiffCount(row) === 0) return false
       if (query && !row.title.toLowerCase().includes(query) && !row.id.includes(query)) return false
       return true
     })
-  }, [summary, difficultyFilter, onlyDiff, search])
+    if (sortField) {
+      rows.sort((x, y) => {
+        const dx = deltaOf(x, sortField)
+        const dy = deltaOf(y, sortField)
+        if (dx === null && dy === null) return 0
+        if (dx === null) return 1
+        if (dy === null) return -1
+        return sortDirection === 'asc' ? dx - dy : dy - dx
+      })
+    }
+    return rows
+  }, [summary, difficultyFilter, onlyDiff, search, sortField, sortDirection])
 
   useEffect(() => {
     const el = scrollRef.current
     if (el) el.scrollTop = 0
     setScrollTop(0)
-  }, [difficultyFilter, onlyDiff, search, summary])
+  }, [difficultyFilter, onlyDiff, search, summary, sortField, sortDirection])
 
   useLayoutEffect(() => {
     const el = scrollRef.current
@@ -199,6 +219,21 @@ export function ConstantsComparePage() {
       const el = scrollRef.current
       if (el) setScrollTop(el.scrollTop)
     })
+  }
+
+  function handleSort(field: keyof V2Difficulty) {
+    const el = scrollRef.current
+    if (el) el.scrollTop = 0
+    setScrollTop(0)
+    if (sortField !== field) {
+      setSortField(field)
+      setSortDirection('asc')
+    } else if (sortDirection === 'asc') {
+      setSortDirection('desc')
+    } else {
+      setSortField(null)
+      setSortDirection('asc')
+    }
   }
 
   async function handleCompare(event: FormEvent) {
@@ -348,9 +383,22 @@ export function ConstantsComparePage() {
                     <th>曲目</th>
                     <th>难度</th>
                     {FIELDS.map((field) => (
-                      <th key={field.key}>
-                        <span>{field.label}</span>
-                        <small>A → B</small>
+                      <th
+                        key={field.key}
+                        aria-sort={sortField === field.key ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'}
+                      >
+                        <button
+                          type="button"
+                          className={sortField === field.key ? 'is-sorted' : ''}
+                          onClick={() => handleSort(field.key)}
+                          aria-label={`按${field.label}变化量排序`}
+                        >
+                          <span>{field.label}</span>
+                          <small>A → B</small>
+                          {sortField === field.key && (
+                            <i className="compare-sort-indicator">{sortDirection === 'asc' ? '↑' : '↓'}</i>
+                          )}
+                        </button>
                       </th>
                     ))}
                   </tr>
@@ -378,6 +426,7 @@ export function ConstantsComparePage() {
                           const a = row.a?.[field.key]
                           const b = row.b?.[field.key]
                           const isDiff = valuesDiffer(a, b)
+                          const delta = a !== undefined && b !== undefined ? b - a : null
                           return (
                             <td
                               key={field.key}
@@ -387,6 +436,11 @@ export function ConstantsComparePage() {
                               <span className="compare-value">{formatValue(a, field.integer)}</span>
                               <i className="compare-arrow">→</i>
                               <span className="compare-value">{formatValue(b, field.integer)}</span>
+                              {delta !== null && delta !== 0 && (
+                                <em className="compare-delta">
+                                  {delta > 0 ? '+' : '−'}{Math.abs(delta).toFixed(field.integer ? 0 : 2)}
+                                </em>
+                              )}
                             </td>
                           )
                         })}

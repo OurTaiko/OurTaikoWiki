@@ -539,6 +539,9 @@
   .compare-table { width: max(100%, 1484px); border-collapse: separate; border-spacing: 0; table-layout: fixed; font-size: .72rem; }
   .compare-table th { position: sticky; top: 0; z-index: 3; padding: .65rem .8rem; color: var(--ink-soft); background: var(--surface-soft); font-size: .62rem; text-align: left; letter-spacing: .05em; white-space: nowrap; }
   .compare-table th small { display: block; margin-top: .2rem; color: var(--ink-soft); font: .58rem var(--mono); opacity: .7; }
+  .compare-table th button { position: relative; display: block; width: 100%; padding: 0; color: inherit; background: transparent; border: 0; font: inherit; letter-spacing: inherit; text-align: left; cursor: pointer; }
+  .compare-table th button:hover, .compare-table th button.is-sorted { color: var(--accent); }
+  .compare-sort-indicator { position: absolute; top: -.2rem; right: 0; color: var(--accent); font: 800 .8rem var(--mono); font-style: normal; }
   .compare-table td { height: 48px; padding: 0 .8rem; vertical-align: middle; border-bottom: 1px solid var(--line); white-space: nowrap; }
   .compare-table tbody tr { height: 48px; }
   .compare-table tbody tr:last-child td { border-bottom: 0; }
@@ -556,6 +559,7 @@
   .compare-value:first-child { color: var(--ink-soft); }
   .compare-arrow { margin-inline: .3rem; color: var(--accent); font: .62rem var(--mono); font-style: normal; opacity: .8; }
   .compare-table td.is-diff .compare-value { color: var(--accent); font-weight: 800; }
+  .compare-delta { margin-left: .35rem; color: var(--accent); font: 700 .62rem var(--mono); font-style: normal; opacity: .9; }
   .compare-empty { display: flex; min-height: 180px; align-items: center; justify-content: center; flex-direction: column; gap: .6rem; color: var(--ink-soft); }
   .compare-empty svg { color: var(--accent); }
   .compare-empty p { font-size: .8rem; }
