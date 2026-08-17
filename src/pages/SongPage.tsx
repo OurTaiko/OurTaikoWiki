@@ -112,7 +112,7 @@ function SingleRatingCard({ version, entry, hasScore, hasConstants }: SingleRati
       ) : !hasConstants ? (
         <div className="single-rating-card__empty"><strong>暂无 {version.toUpperCase()} 定数</strong><p>这个谱面暂时无法使用该版本计算。</p></div>
       ) : !entry ? (
-        <div className="single-rating-card__empty"><strong>成绩不在计算区间</strong><p>{isV1 ? 'v1 需要综合良率达到 75%。' : '请检查成绩判定数与总音符数。'}</p></div>
+        <div className="single-rating-card__empty"><strong>成绩不在计算区间</strong><p>需要综合良率达到 75%，且成绩音符数不能超过总音符数。</p></div>
       ) : (
         <>
           <div className="single-rating-card__score">
