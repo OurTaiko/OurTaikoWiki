@@ -29,14 +29,26 @@ type GuguConstantsResponse = Record<
   Partial<Record<DifficultyName, GuguDifficulty>>
 >
 
+interface FumenDifficulty {
+  rollSeconds?: number
+  balloonCount?: number
+}
+
 interface FumenTitle {
   id: number | string
   title: string
+  constants?: {
+    hard?: FumenDifficulty
+    oni?: FumenDifficulty
+    ura?: FumenDifficulty
+  }
 }
 
 export interface V2SongMeta {
   title: string
   totalNotes: number
+  rollSeconds?: number
+  balloonCount?: number
 }
 
 export interface V2SongsData {
@@ -72,7 +84,7 @@ export function parseGuguConstants(
   constants: GuguConstantsResponse,
   titles: FumenTitle[] = [],
 ): V2SongsData {
-  const titleMap = new Map(titles.map(song => [String(song.id), song.title]))
+  const fumenMap = new Map(titles.map(song => [String(song.id), song]))
   const songs: SongData[] = []
   const meta = new Map<string, V2SongMeta>()
 
@@ -99,9 +111,14 @@ export function parseGuguConstants(
         sub_constant_2: data.sub_constant_2,
       })
 
+      const fumen = fumenMap.get(rawId)
+      const fumenDifficultyName = difficultyName === 'edit' ? 'ura' : difficultyName
+      const fumenDifficulty = fumen?.constants?.[fumenDifficultyName]
       meta.set(`${id}-${difficulty}`, {
-        title: titleMap.get(rawId) ?? '',
+        title: fumen?.title ?? '',
         totalNotes: data.totalNotes,
+        rollSeconds: fumenDifficulty?.rollSeconds,
+        balloonCount: fumenDifficulty?.balloonCount,
       })
     }
   }

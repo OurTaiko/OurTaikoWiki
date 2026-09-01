@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
-import { calculateTaikoRating, calcFullScoreReference, WEIGHTS_A, WEIGHTS_B, calcCompensatedDim, type SongData, type CalculationInput, type FullScoreRef } from '@utils/rating_v2'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { calculateTaikoRating, calcFullScoreReference, WEIGHTS_A, WEIGHTS_B, weightedAverage, calcCompensatedDim, type SongData, type CalculationInput, type FullScoreRef } from '@utils/rating_v2'
 import { parsePastedScores, calcY, calcSingleRating } from '@utils/calculator'
 import type { UserScore } from '@/types'
 import RadarChart from '@components/RadarChart.vue'
@@ -17,6 +17,7 @@ const calcError = ref('')
 const entries = ref<Entry[]>([])
 const dataSource = ref<'localStorage' | 'input' | 'none'>('none')
 const fullScoreRefs = ref<Record<string, FullScoreRef> | null>(null)
+const drumrollHintRef = ref<HTMLDetailsElement | null>(null)
 
 type Entry = {
   title: string
@@ -28,6 +29,10 @@ type Entry = {
   great: number
   good: number
   bad: number
+  drumroll: number
+  rollSeconds?: number
+  balloonCount?: number
+  drumrollSpeed: number | null
   rating: number
   stamina_rt: number
   handspeed_rt: number
@@ -63,6 +68,10 @@ const sortedEntries = computed(() => {
   return [...entries.value].sort((a: any, b: any) => {
     const va = a[sortKey.value!]
     const vb = b[sortKey.value!]
+    if (va == null || vb == null) {
+      if (va == null && vb == null) return 0
+      return va == null ? 1 : -1
+    }
     if (typeof va === 'string') return va.localeCompare(vb) * dir
     return (va - vb) * dir
   })
@@ -168,6 +177,9 @@ function calcFromRaw(raw: string): { entries: Entry[]; error: string } {
       if (!meta || meta.totalNotes <= 0) continue
 
       const totalNotes = meta.totalNotes
+      const drumrollSpeed = meta.rollSeconds && meta.rollSeconds > 0
+        ? Math.max(0, (score.drumroll - (meta.balloonCount ?? 0)) / meta.rollSeconds)
+        : null
 
       // accuracy_per = (great * 1 + good * 0.5) / totalNotes (comprehensive)
       const accuracyPer = (score.great * 1 + score.good * 0.5) / totalNotes
@@ -197,6 +209,10 @@ function calcFromRaw(raw: string): { entries: Entry[]; error: string } {
         great: score.great,
         good: score.good,
         bad: score.bad,
+        drumroll: score.drumroll,
+        rollSeconds: meta.rollSeconds,
+        balloonCount: meta.balloonCount,
+        drumrollSpeed,
         rating: result.rating,
         stamina_rt: result.stamina_rt,
         handspeed_rt: result.handspeed_rt,
@@ -278,6 +294,29 @@ const top20Summary = computed(() => {
     }
   })
 })
+
+const drumrollSummary = computed(() => {
+  const top20 = entries.value
+    .flatMap(entry => entry.drumrollSpeed !== null && entry.drumrollSpeed <= 60 ? [entry.drumrollSpeed] : [])
+    .sort((a, b) => b - a)
+    .slice(0, 20)
+
+  return {
+    value: weightedAverage(top20, WEIGHTS_A),
+    count: top20.length,
+    max: top20[0] ?? 0,
+  }
+})
+
+function handleOutsideClick(event: MouseEvent) {
+  const hint = drumrollHintRef.value
+  if (hint?.open && !hint.contains(event.target as Node)) {
+    hint.open = false
+  }
+}
+
+onMounted(() => document.addEventListener('click', handleOutsideClick))
+onUnmounted(() => document.removeEventListener('click', handleOutsideClick))
 
 // --- Radar chart ---
 const RADAR_DIM_KEYS = ['stamina_rt', 'handspeed_rt', 'burst_rt', 'accuracy_rt', 'rhythm_rt', 'complex_rt'] as const
@@ -452,6 +491,25 @@ loadV2Data().then(() => {
             </div>
             <div class="mt-0.5 text-[#8E8E93] text-[10px]">max {{ d.max.toFixed(2) }} / {{ d.count }}首</div>
           </div>
+          <div class="bg-black/5 p-4 border border-black/5 rounded-[20px] text-center">
+            <div class="flex justify-center items-center gap-1.5 font-semibold text-[#8E8E93] text-xs uppercase tracking-wider">
+              <span>连打秒速</span>
+              <details ref="drumrollHintRef" class="group relative">
+                <summary
+                  class="flex justify-center items-center bg-[#007AFF]/10 hover:bg-[#007AFF]/20 border border-[#007AFF]/40 rounded-full w-4 h-4 font-bold text-[#007AFF] text-[10px] leading-none list-none transition-colors cursor-pointer select-none"
+                  aria-label="查看连打秒速计算说明"
+                >?</summary>
+                <div class="top-full right-0 z-20 absolute bg-white shadow-xl mt-2 p-3 border border-black/15 rounded-xl w-[280px] font-medium text-[#1D1D1F] text-xs leading-relaxed text-left normal-case tracking-normal whitespace-normal">
+                  单曲秒速 = max(0, (连打数量 - 气球数量) ÷ 连打时间)。报告取有效单曲秒速前 20 名，并使用 V2 的 A 权重计算；超过 60 的数据视为无效，不参与统计。
+                </div>
+              </details>
+            </div>
+            <div class="mt-1 font-bold text-[#007AFF] text-xl">
+              {{ drumrollSummary.count > 0 ? drumrollSummary.value.toFixed(2) : '-' }}
+            </div>
+            <div class="mt-0.5 text-[#8E8E93] text-[10px]">打 / 秒</div>
+            <div class="mt-0.5 text-[#8E8E93] text-[10px]">max {{ drumrollSummary.max.toFixed(2) }} / {{ drumrollSummary.count }}首</div>
+          </div>
         </div>
         <!-- 补偿公式说明 -->
         <div v-if="fullScoreRefs" class="mt-3 bg-black/[0.02] p-3 border border-black/5 rounded-[12px] text-[#8E8E93] text-[11px] leading-relaxed">
@@ -507,6 +565,9 @@ loadV2Data().then(() => {
               <th class="bg-[#F2F2F7] p-3 font-bold text-[#1D1D1F] text-right cursor-pointer hover:bg-black/[0.08] transition-colors select-none" @click="toggleSort('accuracy_rt')">
                 精度<span class="ml-1 text-[10px] text-[#8E8E93]">{{ sortKey === 'accuracy_rt' ? (sortDir === 'asc' ? '▲' : '▼') : '' }}</span>
               </th>
+              <th class="bg-[#F2F2F7] p-3 font-bold text-[#1D1D1F] text-right cursor-pointer hover:bg-black/[0.08] transition-colors select-none" @click="toggleSort('drumrollSpeed')">
+                连打秒速<span class="ml-1 text-[10px] text-[#8E8E93]">{{ sortKey === 'drumrollSpeed' ? (sortDir === 'asc' ? '▲' : '▼') : '' }}</span>
+              </th>
               <th class="bg-[#F2F2F7] p-3 font-bold text-[#1D1D1F] text-right cursor-pointer hover:bg-black/[0.08] transition-colors select-none" @click="toggleSort('totalNotes')">
                 Notes<span class="ml-1 text-[10px] text-[#8E8E93]">{{ sortKey === 'totalNotes' ? (sortDir === 'asc' ? '▲' : '▼') : '' }}</span>
               </th>
@@ -528,6 +589,9 @@ loadV2Data().then(() => {
               <td class="p-3 border-black/5 border-b font-mono text-right">{{ e.complex_rt.toFixed(2) }}</td>
               <td class="p-3 border-black/5 border-b font-mono text-right">{{ e.rhythm_rt.toFixed(2) }}</td>
               <td class="p-3 border-black/5 border-b font-mono text-right">{{ e.accuracy_rt.toFixed(2) }}</td>
+              <td class="p-3 border-black/5 border-b font-mono text-right" :class="{ 'text-[#8E8E93]': e.drumrollSpeed !== null && e.drumrollSpeed > 60 }">
+                {{ e.drumrollSpeed?.toFixed(2) ?? '-' }}
+              </td>
               <td class="p-3 border-black/5 border-b text-[#8E8E93] text-right">{{ e.totalNotes }}</td>
             </tr>
           </tbody>
