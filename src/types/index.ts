@@ -17,6 +17,8 @@ export interface ScoreCounts {
 export interface SongLevelData {
   constant: number
   totalNotes: number
+  rollSeconds?: number
+  balloonCount?: number
   composite: number
   avgDensity: number
   instDensity: number
@@ -61,6 +63,8 @@ export interface SongStats extends RatingDimensions, ScoreCounts {
   _isNew?: boolean
   _ratingDiff?: number
   _dimensionDiffs?: Record<keyof RatingDimensions, number>
+  _drumrollHits?: number
+  _rollSeconds?: number
 }
 
 export type SongsDatabase = SongData[]
@@ -73,6 +77,8 @@ export type RatingAlgorithm = 'great-only' | 'comprehensive'
 export interface FumenDifficulty {
   constant: number
   totalNotes: number
+  rollSeconds?: number
+  balloonCount?: number
   composite: number
   avgDensity: number
   instDensity: number

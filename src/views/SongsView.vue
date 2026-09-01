@@ -21,10 +21,16 @@ interface SongRow {
   userScore?: UserScore
   stats?: SongStats
   maxRatings?: RatingDimensions
+  drumrollSpeed?: number
 }
 
-type SortKey = 'title' | 'constant' | 'score' | 'rating' | 'great' | 'good' | 'bad' | 'drumroll' | 'combo' | 'updatedAt'
+type SortKey = 'title' | 'constant' | 'score' | 'rating' | 'great' | 'good' | 'bad' | 'drumrollSpeed' | 'combo' | 'updatedAt'
   | 'maxRating' | 'maxDaigouryoku' | 'maxStamina' | 'maxSpeed' | 'maxAccuracy' | 'maxRhythm' | 'maxComplex'
+
+const calculateDrumrollSpeed = (score: UserScore | undefined, rollSeconds: number | undefined, balloonCount: number | undefined) => {
+  if (!score || !rollSeconds || rollSeconds <= 0) return undefined
+  return Math.max(0, (score.drumroll - (balloonCount ?? 0)) / rollSeconds)
+}
 
 const store = useScoreStore()
 const songs = ref<SongRow[]>([])
@@ -127,6 +133,7 @@ const handleSaveScore = (scoreData: Partial<UserScore>) => {
         if (stats) {
            song.stats = stats
         }
+        song.drumrollSpeed = calculateDrumrollSpeed(newScore, result.levelData.rollSeconds, result.levelData.balloonCount)
      }
   }
 
@@ -144,6 +151,7 @@ const handleClearScore = () => {
 
   song.userScore = undefined
   song.stats = undefined
+  song.drumrollSpeed = undefined
   
   removeFromLocalStorage(id, level)
   closeEditModal()
@@ -269,7 +277,8 @@ onMounted(async () => {
         isCn: song?.is_cn || false,
         userScore: score,
         stats: stats,
-        maxRatings: calcMaxRatings(entry.data, store.ratingAlgorithm.value)
+        maxRatings: calcMaxRatings(entry.data, store.ratingAlgorithm.value),
+        drumrollSpeed: calculateDrumrollSpeed(score, entry.data.rollSeconds, entry.data.balloonCount)
       })
     }
     
@@ -426,9 +435,9 @@ const filteredSongs = computed(() => {
         valA = a.userScore?.bad ?? -1
         valB = b.userScore?.bad ?? -1
         break
-      case 'drumroll':
-        valA = a.userScore?.drumroll ?? -1
-        valB = b.userScore?.drumroll ?? -1
+      case 'drumrollSpeed':
+        valA = a.drumrollSpeed ?? -1
+        valB = b.drumrollSpeed ?? -1
         break
       case 'combo':
         valA = a.userScore?.combo ?? -1
@@ -642,6 +651,9 @@ watch([searchTerm, minConstant, maxConstant, statusFilters, onlyCnSongs, sortKey
             <th @click="toggleSort('bad')" class="bg-black/5 hover:bg-black/10 p-4 font-bold text-[#1D1D1F] text-left whitespace-nowrap transition-colors cursor-pointer select-none">
               {{ t('rating.bad') }} <span v-if="sortKey === 'bad'" class="ml-1">{{ sortOrder === 'asc' ? '↑' : '↓' }}</span>
             </th>
+            <th @click="toggleSort('drumrollSpeed')" class="bg-black/5 hover:bg-black/10 p-4 font-bold text-[#1D1D1F] text-left whitespace-nowrap transition-colors cursor-pointer select-none">
+              {{ t('rating.drumrollSpeed') }} <span v-if="sortKey === 'drumrollSpeed'" class="ml-1">{{ sortOrder === 'asc' ? '↑' : '↓' }}</span>
+            </th>
             <th @click="toggleSort('updatedAt')" class="bg-black/5 hover:bg-black/10 p-4 font-bold text-[#1D1D1F] text-left whitespace-nowrap transition-colors cursor-pointer select-none">
               {{ t('rating.lastPlay') }} <span v-if="sortKey === 'updatedAt'" class="ml-1">{{ sortOrder === 'asc' ? '↑' : '↓' }}</span>
             </th>
@@ -684,6 +696,9 @@ watch([searchTerm, minConstant, maxConstant, statusFilters, onlyCnSongs, sortKey
             <td class="p-4 border-black/5 border-b font-mono text-left">{{ song.userScore?.great ?? '-' }}</td>
             <td class="p-4 border-black/5 border-b font-mono text-left">{{ song.userScore?.good ?? '-' }}</td>
             <td class="p-4 border-black/5 border-b font-mono text-left">{{ song.userScore?.bad ?? '-' }}</td>
+            <td class="p-4 border-black/5 border-b font-mono text-left" :class="{ 'text-[#8E8E93]': song.drumrollSpeed !== undefined && song.drumrollSpeed > 60 }">
+              {{ song.drumrollSpeed?.toFixed(2) ?? '-' }}
+            </td>
             <td class="p-4 border-black/5 border-b text-[#8E8E93] text-xs text-left">{{ song.userScore?.updatedAt ? new Date(song.userScore.updatedAt).toLocaleDateString('zh-CN') : '-' }}</td>
           </tr>
         </tbody>
