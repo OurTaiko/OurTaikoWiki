@@ -213,7 +213,7 @@ const changedSongs = computed(() => {
                     </div>
 
                     <!-- Rating + radar dimension deltas combined summary -->
-                    <div class="mb-8 w-full max-w-[700px]">
+                    <div class="mb-8 w-full md:w-fit max-w-full">
                         <div class="flex flex-col md:flex-row gap-4 md:items-stretch">
                             <!-- Overall Rating card on the left -->
                             <div class="flex justify-center md:justify-start md:w-[220px]">
@@ -237,7 +237,7 @@ const changedSongs = computed(() => {
                             </div>
 
                             <!-- Six-dimension cards on the right -->
-                            <div class="flex-1" v-if="radarDiffData">
+                            <div class="flex-1 md:flex-none md:w-[404px]" v-if="radarDiffData">
                                 <div class="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
                                     <div
                                         v-for="key in radarDimensionKeys"
@@ -271,7 +271,7 @@ const changedSongs = computed(() => {
                                     class="flex justify-center items-center bg-[#007AFF]/10 hover:bg-[#007AFF]/20 border border-[#007AFF]/40 rounded-full w-5 h-5 font-bold text-[#007AFF] text-xs leading-none list-none transition-colors cursor-pointer select-none"
                                     :aria-label="t('report.drumrollSpeedHintLabel')"
                                 >?</summary>
-                                <div class="top-full right-0 z-20 absolute bg-white shadow-xl mt-2 p-3 border border-black/10 rounded-xl w-[280px] font-normal text-[#636366] text-xs leading-relaxed text-left normal-case tracking-normal whitespace-normal">
+                                <div class="top-full right-0 z-20 absolute bg-white shadow-xl mt-2 p-3 border border-black/15 rounded-xl w-[280px] font-medium text-[#1D1D1F] text-xs leading-relaxed text-left normal-case tracking-normal whitespace-normal">
                                     {{ t('report.drumrollSpeedHint') }}
                                 </div>
                             </details>
