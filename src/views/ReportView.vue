@@ -2,6 +2,8 @@
 import type { SongStats, RatingDimensions } from '@/types'
 import RadarChart from '@components/RadarChart.vue'
 import TopTable from '@components/TopTable.vue'
+import duplicateSongs from '@data/duplicateSongs'
+import { calculateDrumrollSpeedB20 } from '@utils/calculator'
 import { eventBus } from '@utils/eventBus'
 import html2canvas from 'html2canvas'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
@@ -30,6 +32,7 @@ const notice = computed(() => {
 
 const contentRef = ref<HTMLElement | null>(null)
 const isSaving = ref(false)
+const drumrollHintRef = ref<HTMLDetailsElement | null>(null)
 
 const activeSection = ref('overview')
 const activeSubTab = ref<'top' | 'recommend'>('top')
@@ -108,9 +111,17 @@ function handleCnFilterChange(value: boolean) {
     store.setCnFilter(value)
 }
 
+function handleOutsideClick(event: MouseEvent) {
+    const hint = drumrollHintRef.value
+    if (hint?.open && !hint.contains(event.target as Node)) {
+        hint.open = false
+    }
+}
+
 onMounted(async () => {
     eventBus.on('trigger-screenshot', handleScreenshot)
     eventBus.on('cn-filter-changed', handleCnFilterChange)
+    document.addEventListener('click', handleOutsideClick)
 
     await store.init()
 })
@@ -118,6 +129,7 @@ onMounted(async () => {
 onUnmounted(() => {
     eventBus.off('trigger-screenshot', handleScreenshot)
     eventBus.off('cn-filter-changed', handleCnFilterChange)
+    document.removeEventListener('click', handleOutsideClick)
 })
 
 const currentTableData = computed(() => {
@@ -142,6 +154,10 @@ const radarDiffData = computed(() => {
         rhythm: radarData.value.rhythm - lastRadarData.value.rhythm,
         complex: radarData.value.complex - lastRadarData.value.complex
     }
+})
+
+const drumrollSpeed = computed(() => {
+    return calculateDrumrollSpeedB20(filteredSongStats.value, duplicateSongs)
 })
 
 
@@ -257,6 +273,20 @@ async function saveElementAsImage(element: HTMLElement | null, fileName: string)
                                     </div>
                                 </div>
                             </div>
+                        </div>
+                        <div class="flex justify-start items-center gap-3 bg-black/5 mt-3 px-6 py-3 border border-black/5 rounded-[24px] text-left whitespace-nowrap">
+                            <span class="font-semibold text-[#8E8E93] text-sm uppercase tracking-wider">{{ t('report.drumrollSpeed') }} B20</span>
+                            <span class="font-bold text-[#007AFF] text-sm leading-none">{{ drumrollSpeed?.toFixed(2) ?? '-' }}</span>
+                            <span class="font-semibold text-[#8E8E93] text-sm">{{ t('report.hitsPerSecond') }}</span>
+                            <details ref="drumrollHintRef" class="group relative">
+                                <summary
+                                    class="flex justify-center items-center bg-[#007AFF]/10 hover:bg-[#007AFF]/20 border border-[#007AFF]/40 rounded-full w-5 h-5 font-bold text-[#007AFF] text-xs leading-none list-none transition-colors cursor-pointer select-none"
+                                    :aria-label="t('report.drumrollSpeedHintLabel')"
+                                >?</summary>
+                                <div class="top-full right-0 z-20 absolute bg-white shadow-xl mt-2 p-3 border border-black/10 rounded-xl w-[280px] font-normal text-[#636366] text-xs leading-relaxed text-left normal-case tracking-normal whitespace-normal">
+                                    {{ t('report.drumrollSpeedHint') }}
+                                </div>
+                            </details>
                         </div>
                     </div>
 

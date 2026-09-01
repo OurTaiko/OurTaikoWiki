@@ -412,7 +412,9 @@ export function calculateSongStats(levelData: SongLevelData, userScore: UserScor
     complex,
     great: userScore.great,
     good: userScore.good,
-    bad: userScore.bad
+    bad: userScore.bad,
+    _drumrollHits: userScore.drumroll - (levelData.balloonCount ?? 0),
+    _rollSeconds: levelData.rollSeconds
   }
 }
 
@@ -561,6 +563,11 @@ function getTop20WeightedAverage(data: SongStats[], key: keyof SongStats): numbe
   const sorted = data.map(d => d[key] as number).sort((a, b) => b - a)
   const top20 = sorted.slice(0, 20)
 
+  return getWeightedAverage(top20)
+}
+
+function getWeightedAverage(top20: number[]): number {
+
   if (top20.length === 0) return 0
 
   const weights = [0.4 / 5, 0.4 / 5, 0.4 / 5, 0.4 / 5, 0.4 / 5,
@@ -580,6 +587,26 @@ function getTop20WeightedAverage(data: SongStats[], key: keyof SongStats): numbe
   if (weightSum === 0) return 0
 
   return weightedSum / weightSum
+}
+
+/**
+ * 计算连打秒速 B20 加权平均值
+ * 与六维相同，先过滤重复谱面，再对单曲连打秒速前 20 名应用递减权重。
+ */
+export function calculateDrumrollSpeedB20(
+  data: SongStats[],
+  duplicateSongs: Array<Array<{ id: number, level: number }>>
+): number | null {
+  const speeds = filterDuplicateSongs(data, duplicateSongs)
+    .flatMap(song => {
+      if (!song._rollSeconds || song._rollSeconds <= 0) return []
+      const speed = Math.max(0, (song._drumrollHits ?? 0) / song._rollSeconds)
+      return Number.isFinite(speed) && speed <= 60 ? [speed] : []
+    })
+    .sort((a, b) => b - a)
+    .slice(0, 20)
+
+  return speeds.length > 0 ? getWeightedAverage(speeds) : null
 }
 
 /**
