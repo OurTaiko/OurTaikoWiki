@@ -1,7 +1,9 @@
-import { Calculator, Database, Monitor } from 'lucide-react'
+import { useState } from 'react'
+import { ArrowUpRight, Calculator, Database, Github, Monitor } from 'lucide-react'
 import { songSources } from '../data/sources'
 import { useWiki } from '../context/WikiContext'
 import type { AlgoVersion, SourceId } from '../types'
+import { GITHUB_TOKEN_STORAGE_KEY } from '../utils/cloudSync'
 
 const ALGO_OPTIONS: { id: AlgoVersion; label: string; desc: string }[] = [
   {
@@ -18,6 +20,14 @@ const ALGO_OPTIONS: { id: AlgoVersion; label: string; desc: string }[] = [
 
 export function SettingsPage() {
   const { theme, setTheme, sourceId, setSourceId, algoVersion, setAlgoVersion } = useWiki()
+  const [githubToken, setGithubToken] = useState(() => localStorage.getItem(GITHUB_TOKEN_STORAGE_KEY) || '')
+
+  function updateGithubToken(token: string) {
+    const normalized = token.trim()
+    setGithubToken(normalized)
+    if (normalized) localStorage.setItem(GITHUB_TOKEN_STORAGE_KEY, normalized)
+    else localStorage.removeItem(GITHUB_TOKEN_STORAGE_KEY)
+  }
 
   return (
     <main className="page-shell settings-page">
@@ -84,6 +94,24 @@ export function SettingsPage() {
               <span>{option.desc}</span>
             </label>
           ))}
+        </div>
+      </section>
+
+      <section className="settings-section panel">
+        <header className="settings-section__header">
+          <Github size={20} />
+          <div>
+            <h2>成绩云同步</h2>
+            <p>使用 GitHub 账号保存成绩与历史变化</p>
+          </div>
+        </header>
+        <div className="settings-gist-form">
+          <label>
+            <span>GitHub Token</span>
+            <input type="password" value={githubToken} onChange={(event) => updateGithubToken(event.target.value)} placeholder="github_pat_…" autoComplete="off" />
+            <small>Fine-grained Token 需授予 Gists 读写权限；修改后自动保存到当前浏览器。</small>
+            <a className="settings-token-link" href="https://github.com/settings/personal-access-tokens" target="_blank" rel="noreferrer">前往 GitHub 创建 Token <ArrowUpRight size={14} /></a>
+          </label>
         </div>
       </section>
     </main>

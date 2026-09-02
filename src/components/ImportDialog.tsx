@@ -1,7 +1,17 @@
 import { useEffect, useState, type FormEvent } from 'react'
-import { Bot, CheckCircle2, FileJson, KeyRound, LoaderCircle, ShieldCheck, X } from 'lucide-react'
+import { Bot, CheckCircle2, FileJson, Github, KeyRound, LoaderCircle, ShieldCheck, X } from 'lucide-react'
 import { useWiki } from '../context/WikiContext'
-import { importFromKinoko, importFromSakura, parseManualScores } from '../utils/scoreImport'
+import {
+  GITHUB_TOKEN_STORAGE_KEY,
+  SCORE_SYNCED_EVENT,
+  syncScoresToGist,
+} from '../utils/cloudSync'
+import {
+  importFromKinoko,
+  importFromSakura,
+  parseManualScoreImport,
+  type ScoreImportResult,
+} from '../utils/scoreImport'
 
 type ImportTab = 'kinoko' | 'sakura' | 'manual'
 
@@ -23,6 +33,7 @@ export function ImportDialog({ open, onClose }: ImportDialogProps) {
   const [playerId, setPlayerId] = useState(() => localStorage.getItem('our-taiko-wiki:kinoko-player') || '')
   const [token, setToken] = useState(() => localStorage.getItem('our-taiko-wiki:sakura-token') || '')
   const [manual, setManual] = useState('')
+  const [githubToken, setGithubToken] = useState(() => localStorage.getItem(GITHUB_TOKEN_STORAGE_KEY) || '')
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState<{ kind: 'success' | 'error'; text: string } | null>(null)
 
@@ -42,7 +53,7 @@ export function ImportDialog({ open, onClose }: ImportDialogProps) {
     setLoading(true)
     setMessage(null)
     try {
-      let imported
+      let imported: ScoreImportResult
       if (tab === 'kinoko') {
         if (!apiKey.trim()) throw new Error('请输入菌菌 API 密钥')
         if (playerId && !/^\d+$/.test(playerId)) throw new Error('玩家 ID 只能包含数字')
@@ -55,12 +66,31 @@ export function ImportDialog({ open, onClose }: ImportDialogProps) {
         imported = await importFromSakura(token.trim())
       } else {
         if (!manual.trim()) throw new Error('请粘贴 JSON 成绩数据')
-        imported = parseManualScores(manual)
+        imported = parseManualScoreImport(manual)
       }
 
-      if (!imported.length) throw new Error('未识别到有效成绩，请检查数据格式或同步状态')
-      saveScores([...scores, ...imported])
-      setMessage({ kind: 'success', text: `已导入 ${imported.length} 条谱面成绩` })
+      if (!imported.scores.length) throw new Error('未识别到有效成绩，请检查数据格式或同步状态')
+      saveScores([...scores, ...imported.scores])
+
+      const nextGithubToken = githubToken.trim()
+      if (!nextGithubToken) {
+        setMessage({ kind: 'success', text: `已导入 ${imported.scores.length} 条谱面成绩` })
+        return
+      }
+      localStorage.setItem(GITHUB_TOKEN_STORAGE_KEY, nextGithubToken)
+      if (!imported.account) {
+        setMessage({ kind: 'error', text: `已导入 ${imported.scores.length} 条成绩，但 JSON 中没有账号信息，无法同步到云端` })
+        return
+      }
+      try {
+        const synced = await syncScoresToGist(nextGithubToken, imported.account, imported.rawScores)
+        window.dispatchEvent(new Event(SCORE_SYNCED_EVENT))
+        const syncText = synced.created ? '已创建账号备份' : synced.changed ? '已新增历史版本' : '与云端相同，无需上传'
+        setMessage({ kind: 'success', text: `已导入 ${imported.scores.length} 条谱面成绩；${syncText}` })
+      } catch (reason) {
+        const detail = reason instanceof Error ? reason.message : '同步失败'
+        setMessage({ kind: 'error', text: `成绩已保存到本机，但云同步失败：${detail}` })
+      }
     } catch (reason) {
       setMessage({ kind: 'error', text: reason instanceof Error ? reason.message : '导入失败' })
     } finally {
@@ -111,7 +141,8 @@ export function ImportDialog({ open, onClose }: ImportDialogProps) {
             </>
           )}
 
-          <div className="privacy-note"><ShieldCheck size={17} /><span>成绩仅写入本机 localStorage，不会上传到 Wiki 服务器。</span></div>
+          <label className="github-token-field"><span><Github size={15} /> GitHub Token <small>可选</small></span><input type="password" value={githubToken} onChange={(event) => setGithubToken(event.target.value)} placeholder="github_pat_…（需 Gists 读写权限）" autoComplete="off" /></label>
+          <div className="privacy-note"><ShieldCheck size={17} /><span>未填写 GitHub Token 时成绩只保存到本机；填写后会同步到你的私有云端档案，不会上传到 Wiki 服务器。</span></div>
           {message && <div className={`form-message is-${message.kind}`} role="status">{message.kind === 'success' && <CheckCircle2 size={18} />}{message.text}</div>}
           <button className="primary-button import-submit" type="submit" disabled={loading}>
             {loading ? <><LoaderCircle className="spin" size={18} />正在读取…</> : '开始导入'}

@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
-import { ArrowUpRight, BarChart3, Import, Info, LoaderCircle, Medal } from 'lucide-react'
+import { ArrowUpRight, BarChart3, History, Import, Info, LoaderCircle, Medal } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { ImportDialog } from '../components/ImportDialog'
 import { RadarChart, type RadarMetric } from '../components/RadarChart'
+import { RatingHistory } from '../components/RatingHistory'
 import { useWiki } from '../context/WikiContext'
 import { loadV1Constants, loadV2Constants } from '../data/constants'
 import type { V1Song, V2SongMap } from '../types'
@@ -13,6 +14,7 @@ import {
 } from '../utils/rating'
 import { calculateV1Report } from '../utils/rating-v1'
 import { calculateV2Report } from '../utils/rating-v2'
+import { GITHUB_TOKEN_STORAGE_KEY, SCORE_SYNCED_EVENT } from '../utils/cloudSync'
 
 const DIFFICULTY_LABELS = ['简单', '普通', '困难', '魔王', '里魔王']
 
@@ -64,6 +66,7 @@ export function RatingPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [importOpen, setImportOpen] = useState(false)
+  const [githubToken, setGithubToken] = useState(() => localStorage.getItem(GITHUB_TOKEN_STORAGE_KEY) || '')
 
   useEffect(() => {
     let active = true
@@ -84,6 +87,12 @@ export function RatingPage() {
   useEffect(() => {
     setDimension('rating')
   }, [algoVersion])
+
+  useEffect(() => {
+    const updateToken = () => setGithubToken(localStorage.getItem(GITHUB_TOKEN_STORAGE_KEY) || '')
+    window.addEventListener(SCORE_SYNCED_EVENT, updateToken)
+    return () => window.removeEventListener(SCORE_SYNCED_EVENT, updateToken)
+  }, [])
 
   const report = useMemo(() => {
     if (!v1 || !v2) return undefined
@@ -147,7 +156,16 @@ export function RatingPage() {
           <ResultTable report={report} dimension={dimension} />
         </>
       )}
-      <ImportDialog open={importOpen} onClose={() => setImportOpen(false)} />
+      {!loading && !error && v1 && v2 && (githubToken ? (
+        <RatingHistory githubToken={githubToken} songs={songs} algoVersion={algoVersion} v1={v1} v2={v2} />
+      ) : (
+        <section className="rating-history-setup panel">
+          <History />
+          <div><h2>历史成绩</h2><p>在导入窗口或设置中填写 GitHub Token，同步成绩后即可查看 Rating 与成绩变化。</p></div>
+          <Link className="primary-button" to="/settings">前往设置</Link>
+        </section>
+      ))}
+      <ImportDialog open={importOpen} onClose={() => { setImportOpen(false); setGithubToken(localStorage.getItem(GITHUB_TOKEN_STORAGE_KEY) || '') }} />
     </main>
   )
 }
