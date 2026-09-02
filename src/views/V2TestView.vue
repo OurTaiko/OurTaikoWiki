@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { calculateTaikoRating, calcFullScoreReference, WEIGHTS_A, WEIGHTS_B, weightedAverage, calcCompensatedDim, type SongData, type CalculationInput, type FullScoreRef } from '@utils/rating_v2'
-import { parsePastedScores, calcY, calcSingleRating } from '@utils/calculator'
+import { parsePastedScores, calcY, calcSingleRating, getDrumrollSpeed, getDrumrollSpeedUpperBound, isDrumrollSpeedValid } from '@utils/calculator'
 import type { UserScore } from '@/types'
 import RadarChart from '@components/RadarChart.vue'
 import { loadV2SongsData, type V2SongMeta } from '@data/v2Songs'
@@ -177,9 +177,10 @@ function calcFromRaw(raw: string): { entries: Entry[]; error: string } {
       if (!meta || meta.totalNotes <= 0) continue
 
       const totalNotes = meta.totalNotes
-      const drumrollSpeed = meta.rollSeconds && meta.rollSeconds > 0
-        ? Math.max(0, (score.drumroll - (meta.balloonCount ?? 0)) / meta.rollSeconds)
-        : null
+      const drumrollSpeed = getDrumrollSpeed(
+        score.drumroll - (meta.balloonCount ?? 0),
+        meta.rollSeconds,
+      )
 
       // accuracy_per = (great * 1 + good * 0.5) / totalNotes (comprehensive)
       const accuracyPer = (score.great * 1 + score.good * 0.5) / totalNotes
@@ -295,9 +296,26 @@ const top20Summary = computed(() => {
   })
 })
 
+// 与歌曲列表保持一致：使用鬼/里鬼（level 4/5）记录建立玩家的自适应阈值。
+// Map 可避免重复的同一谱面记录影响阈值分布。
+const drumrollSpeedUpperBound = computed(() => {
+  const speedByChart = new Map<string, number>()
+  for (const entry of entries.value) {
+    if ((entry.level === 4 || entry.level === 5) && entry.drumrollSpeed !== null) {
+      speedByChart.set(`${entry.id}-${entry.level}`, entry.drumrollSpeed)
+    }
+  }
+  return getDrumrollSpeedUpperBound([...speedByChart.values()])
+})
+
+const isDrumrollSpeedExcluded = (speed: number | null) =>
+  speed !== null && !isDrumrollSpeedValid(speed, drumrollSpeedUpperBound.value)
+
 const drumrollSummary = computed(() => {
   const top20 = entries.value
-    .flatMap(entry => entry.drumrollSpeed !== null && entry.drumrollSpeed <= 60 ? [entry.drumrollSpeed] : [])
+    .flatMap(entry => entry.drumrollSpeed !== null && isDrumrollSpeedValid(entry.drumrollSpeed, drumrollSpeedUpperBound.value)
+      ? [entry.drumrollSpeed]
+      : [])
     .sort((a, b) => b - a)
     .slice(0, 20)
 
@@ -500,7 +518,7 @@ loadV2Data().then(() => {
                   aria-label="查看连打秒速计算说明"
                 >?</summary>
                 <div class="top-full right-0 z-20 absolute bg-white shadow-xl mt-2 p-3 border border-black/15 rounded-xl w-[280px] font-medium text-[#1D1D1F] text-xs leading-relaxed text-left normal-case tracking-normal whitespace-normal">
-                  单曲秒速 = max(0, (连打数量 - 气球数量) ÷ 连打时间)。报告取有效单曲秒速前 20 名，并使用 V2 的 A 权重计算；超过 60 的数据视为无效，不参与统计。
+                  单曲秒速 = (连打数量 - 气球数量) ÷ 连打时间。报告使用与歌曲列表相同的 MAD、IQR 和中位数比例算法自适应识别偏高异常值，并以 60 打/秒作为安全上限；有效记录取前 20 名并使用 V2 的 A 权重计算。当前自适应上限：{{ drumrollSpeedUpperBound.toFixed(2) }} 打/秒。
                 </div>
               </details>
             </div>
@@ -589,7 +607,11 @@ loadV2Data().then(() => {
               <td class="p-3 border-black/5 border-b font-mono text-right">{{ e.complex_rt.toFixed(2) }}</td>
               <td class="p-3 border-black/5 border-b font-mono text-right">{{ e.rhythm_rt.toFixed(2) }}</td>
               <td class="p-3 border-black/5 border-b font-mono text-right">{{ e.accuracy_rt.toFixed(2) }}</td>
-              <td class="p-3 border-black/5 border-b font-mono text-right" :class="{ 'text-[#8E8E93]': e.drumrollSpeed !== null && e.drumrollSpeed > 60 }">
+              <td
+                class="p-3 border-black/5 border-b font-mono text-right"
+                :class="{ 'text-[#8E8E93]': isDrumrollSpeedExcluded(e.drumrollSpeed) }"
+                :title="isDrumrollSpeedExcluded(e.drumrollSpeed) ? `疑似异常，不计入连打秒速 B20（当前自适应上限：${drumrollSpeedUpperBound.toFixed(2)} 打/秒）` : undefined"
+              >
                 {{ e.drumrollSpeed?.toFixed(2) ?? '-' }}
               </td>
               <td class="p-3 border-black/5 border-b text-[#8E8E93] text-right">{{ e.totalNotes }}</td>
