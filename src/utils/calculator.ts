@@ -593,16 +593,92 @@ function getWeightedAverage(top20: number[]): number {
  * 计算连打秒速 B20 加权平均值
  * 与六维相同，先过滤重复谱面，再对单曲连打秒速前 20 名应用递减权重。
  */
+export const DRUMROLL_SPEED_ABSOLUTE_MAX = 60
+const DRUMROLL_SPEED_MIN_SAMPLE_SIZE = 6
+const DRUMROLL_SPEED_MAD_MULTIPLIER = 2
+const NORMALIZED_MAD_SCALE = 1.4826
+const IQR_MULTIPLIER = 1
+const MEDIAN_UPPER_RATIO = 1.75
+const ZERO_SPREAD_TOLERANCE_RATIO = 1.5
+
+function median(values: number[]): number {
+  const sorted = [...values].sort((a, b) => a - b)
+  const middle = Math.floor(sorted.length / 2)
+  return sorted.length % 2 === 0
+    ? (sorted[middle - 1] + sorted[middle]) / 2
+    : sorted[middle]
+}
+
+function quantile(sortedValues: number[], proportion: number): number {
+  const index = (sortedValues.length - 1) * proportion
+  const lower = Math.floor(index)
+  const fraction = index - lower
+  return sortedValues[lower + 1] === undefined
+    ? sortedValues[lower]
+    : sortedValues[lower] + fraction * (sortedValues[lower + 1] - sortedValues[lower])
+}
+
+/** 根据有效连打数和谱面连打时长计算秒速；数据不合法时返回 null。 */
+export function getDrumrollSpeed(
+  drumrollHits: number | undefined,
+  rollSeconds: number | undefined
+): number | null {
+  if (drumrollHits === undefined || !Number.isFinite(drumrollHits) || drumrollHits < 0) return null
+  if (rollSeconds === undefined || !Number.isFinite(rollSeconds) || rollSeconds <= 0) return null
+
+  const speed = drumrollHits / rollSeconds
+  return Number.isFinite(speed) && speed >= 0 ? speed : null
+}
+
+/**
+ * 使用对数 MAD 计算玩家数据的自适应异常上限。
+ * 样本不足时仅使用宽松的绝对安全上限；MAD 为 0 时回退到 IQR。
+ */
+export function getDrumrollSpeedUpperBound(speeds: number[]): number {
+  const logSpeeds = speeds
+    .filter(speed => Number.isFinite(speed) && speed > 0 && speed <= DRUMROLL_SPEED_ABSOLUTE_MAX)
+    .map(Math.log)
+
+  if (logSpeeds.length < DRUMROLL_SPEED_MIN_SAMPLE_SIZE) return DRUMROLL_SPEED_ABSOLUTE_MAX
+
+  const sorted = [...logSpeeds].sort((a, b) => a - b)
+  const center = median(sorted)
+  const mad = median(sorted.map(speed => Math.abs(speed - center)))
+  const q1 = quantile(sorted, 0.25)
+  const q3 = quantile(sorted, 0.75)
+  const iqr = q3 - q1
+
+  // 同时使用 Hampel（MAD）、Tukey（IQR）与中位数比例上界，
+  // 取较严格者，避免多个分散的高值共同抬高统计阈值。
+  const madUpperBound = mad > 0
+    ? center + DRUMROLL_SPEED_MAD_MULTIPLIER * NORMALIZED_MAD_SCALE * mad
+    : center + Math.log(ZERO_SPREAD_TOLERANCE_RATIO)
+  const iqrUpperBound = iqr > 0
+    ? q3 + IQR_MULTIPLIER * iqr
+    : center + Math.log(ZERO_SPREAD_TOLERANCE_RATIO)
+  const ratioUpperBound = center + Math.log(MEDIAN_UPPER_RATIO)
+  const logUpperBound = Math.min(madUpperBound, iqrUpperBound, ratioUpperBound)
+
+  return Math.min(Math.exp(logUpperBound), DRUMROLL_SPEED_ABSOLUTE_MAX)
+}
+
+export function isDrumrollSpeedValid(speed: number, upperBound: number): boolean {
+  return Number.isFinite(speed) && speed >= 0 && speed <= upperBound
+}
+
 export function calculateDrumrollSpeedB20(
   data: SongStats[],
   duplicateSongs: Array<Array<{ id: number, level: number }>>
 ): number | null {
-  const speeds = filterDuplicateSongs(data, duplicateSongs)
+  const samples = filterDuplicateSongs(data, duplicateSongs)
     .flatMap(song => {
-      if (!song._rollSeconds || song._rollSeconds <= 0) return []
-      const speed = Math.max(0, (song._drumrollHits ?? 0) / song._rollSeconds)
-      return Number.isFinite(speed) && speed <= 60 ? [speed] : []
+      const speed = getDrumrollSpeed(song._drumrollHits, song._rollSeconds)
+      return speed === null ? [] : [speed]
     })
+
+  const upperBound = getDrumrollSpeedUpperBound(samples)
+  const speeds = samples
+    .filter(speed => isDrumrollSpeedValid(speed, upperBound))
     .sort((a, b) => b - a)
     .slice(0, 20)
 

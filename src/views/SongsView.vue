@@ -2,7 +2,7 @@
 import type { SongsDatabase, SongStats, UserScore, RatingDimensions } from '@/types'
 import EditScoreModal from '@components/EditScoreModal.vue'
 import { loadSongsData } from '@data/songs'
-import { calculateSongStats, MAX_CONSTANT_VALUE, parsePastedScores, calcMaxRatings } from '@utils/calculator'
+import { calculateSongStats, MAX_CONSTANT_VALUE, parsePastedScores, calcMaxRatings, getDrumrollSpeed, getDrumrollSpeedUpperBound, isDrumrollSpeedValid } from '@utils/calculator'
 import { difficultyBadgeMap, difficultyMap } from '@utils/difficulty'
 import { eventBus } from '@utils/eventBus'
 import { expandSongsDatabase, findSongByIdLevel } from '@utils/songHelpers'
@@ -28,8 +28,8 @@ type SortKey = 'title' | 'constant' | 'score' | 'rating' | 'great' | 'good' | 'b
   | 'maxRating' | 'maxDaigouryoku' | 'maxStamina' | 'maxSpeed' | 'maxAccuracy' | 'maxRhythm' | 'maxComplex'
 
 const calculateDrumrollSpeed = (score: UserScore | undefined, rollSeconds: number | undefined, balloonCount: number | undefined) => {
-  if (!score || !rollSeconds || rollSeconds <= 0) return undefined
-  return Math.max(0, (score.drumroll - (balloonCount ?? 0)) / rollSeconds)
+  if (!score) return undefined
+  return getDrumrollSpeed(score.drumroll - (balloonCount ?? 0), rollSeconds) ?? undefined
 }
 
 const store = useScoreStore()
@@ -39,6 +39,13 @@ const songsDB = ref<SongsDatabase | null>(null)
 const loading = ref(true)
 const searchTerm = ref('')
 const onlyCnSongs = ref(false)
+
+const drumrollSpeedUpperBound = computed(() => getDrumrollSpeedUpperBound(
+  allSongs.value.flatMap(song => song.drumrollSpeed === undefined ? [] : [song.drumrollSpeed])
+))
+
+const isDrumrollSpeedExcluded = (speed: number | undefined) =>
+  speed !== undefined && !isDrumrollSpeedValid(speed, drumrollSpeedUpperBound.value)
 
 // Edit Modal State
 const showEditModal = ref(false)
@@ -696,7 +703,11 @@ watch([searchTerm, minConstant, maxConstant, statusFilters, onlyCnSongs, sortKey
             <td class="p-4 border-black/5 border-b font-mono text-left">{{ song.userScore?.great ?? '-' }}</td>
             <td class="p-4 border-black/5 border-b font-mono text-left">{{ song.userScore?.good ?? '-' }}</td>
             <td class="p-4 border-black/5 border-b font-mono text-left">{{ song.userScore?.bad ?? '-' }}</td>
-            <td class="p-4 border-black/5 border-b font-mono text-left" :class="{ 'text-[#8E8E93]': song.drumrollSpeed !== undefined && song.drumrollSpeed > 60 }">
+            <td
+              class="p-4 border-black/5 border-b font-mono text-left"
+              :class="{ 'text-[#8E8E93]': isDrumrollSpeedExcluded(song.drumrollSpeed) }"
+              :title="isDrumrollSpeedExcluded(song.drumrollSpeed) ? t('rating.drumrollSpeedExcluded', { limit: drumrollSpeedUpperBound.toFixed(2) }) : undefined"
+            >
               {{ song.drumrollSpeed?.toFixed(2) ?? '-' }}
             </td>
             <td class="p-4 border-black/5 border-b text-[#8E8E93] text-xs text-left">{{ song.userScore?.updatedAt ? new Date(song.userScore.updatedAt).toLocaleDateString('zh-CN') : '-' }}</td>
