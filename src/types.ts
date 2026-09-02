@@ -25,6 +25,8 @@ export interface Song {
 export interface V1Difficulty {
   constant: number
   totalNotes: number
+  rollSeconds?: number
+  balloonCount?: number
   composite: number
   avgDensity: number
   instDensity: number

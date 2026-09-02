@@ -98,7 +98,7 @@ export function RatingPage() {
     if (!v1 || !v2) return undefined
     return algoVersion === 'v1'
       ? calculateV1Report(scores, songs, v1)
-      : calculateV2Report(scores, songs, v2)
+      : calculateV2Report(scores, songs, v2, v1)
   }, [algoVersion, scores, songs, v1, v2])
 
   const radarMetrics = useMemo<RadarMetric[]>(() => report?.summary
@@ -132,12 +132,24 @@ export function RatingPage() {
               <header><div><span className="eyebrow"><BarChart3 size={14} /> OVERVIEW</span><h2>综合能力</h2></div><span>{report.entries.length} 首有效成绩</span></header>
               <div className="rating-scoreboard">
                 <div className="rating-total"><span>RATING</span><strong>{report.summary[0].value.toFixed(2)}</strong><small>{report.summary[0].compensated ? 'TOP 20 BONUS APPLIED' : `${algoVersion.toUpperCase()} REPORT`}</small></div>
-                <div className="rating-dimensions">
-                  {report.summary.slice(1).map((item) => (
-                    <button key={item.key} type="button" onClick={() => setDimension(item.key)} className={dimension === item.key ? 'is-active' : ''}>
-                      <span>{item.label}{item.compensated && <i title="高水平补偿已生效">+</i>}</span><strong>{item.value.toFixed(2)}</strong>
-                    </button>
-                  ))}
+                <div className="rating-scoreboard__metrics">
+                  <div className="rating-dimensions">
+                    {report.summary.slice(1).map((item) => (
+                      <button key={item.key} type="button" onClick={() => setDimension(item.key)} className={dimension === item.key ? 'is-active' : ''}>
+                        <span>{item.label}{item.compensated && <i title="高水平补偿已生效">+</i>}</span><strong>{item.value.toFixed(2)}</strong>
+                      </button>
+                    ))}
+                  </div>
+                  <div className="rating-drumroll" title={`当前自适应上限：${report.drumroll.upperBound.toFixed(2)} 打/秒`}>
+                    <div>
+                      <span>连打力</span>
+                      <small>独立指标 · 有效成绩 B20 加权计算</small>
+                    </div>
+                    <strong>
+                      {report.drumroll.value?.toFixed(2) ?? '-'}
+                      {report.drumroll.value !== null && <small>打/秒</small>}
+                    </strong>
+                  </div>
                 </div>
               </div>
             </div>

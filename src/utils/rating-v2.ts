@@ -1,4 +1,5 @@
-import type { DifficultyKey, ImportedScore, Song, V2Difficulty, V2DifficultyKey, V2SongMap } from '../types'
+import type { DifficultyKey, ImportedScore, Song, V1Difficulty, V1Song, V2Difficulty, V2DifficultyKey, V2SongMap } from '../types'
+import { analyzeDrumroll, getDrumrollSpeed } from './drumroll'
 import {
   NORMALIZATION_FACTOR,
   calculateComprehensiveAccuracy,
@@ -80,7 +81,12 @@ function calculateValues(song: FlatV2Song, accuracyPer: number, badPer: number):
   }
 }
 
-function calculateEntry(song: FlatV2Song, score: ImportedScore, title: string): RatingEntry | null {
+function calculateEntry(
+  song: FlatV2Song,
+  score: ImportedScore,
+  title: string,
+  timing?: Pick<V1Difficulty, 'rollSeconds' | 'balloonCount'>,
+): RatingEntry | null {
   const dondafuru = isDondafuruScore(score)
   if (!dondafuru && !scoreJudgementsAreValid(score, song.totalNotes)) return null
   const accuracy = dondafuru ? 1 : calculateComprehensiveAccuracy(score.good, score.ok, song.totalNotes)
@@ -98,6 +104,7 @@ function calculateEntry(song: FlatV2Song, score: ImportedScore, title: string): 
     good: score.ok,
     bad: score.bad,
     totalNotes: song.totalNotes,
+    drumrollSpeed: getDrumrollSpeed(score.drumroll - (timing?.balloonCount ?? 0), timing?.rollSeconds),
     values,
   }
 }
@@ -132,6 +139,7 @@ function calculateFullReferences(songs: FlatV2Song[]): Record<RatingDimensionKey
     good: 0,
     bad: 0,
     totalNotes: song.totalNotes,
+    drumrollSpeed: null,
     values: calculateValues(song, 1, 0) || { rating: 0 },
   })) as RatingEntry[]
 
@@ -155,14 +163,25 @@ function calculateSummary(entries: RatingEntry[], songs: FlatV2Song[]): RatingSu
   })
 }
 
-export function calculateV2Report(scores: ImportedScore[], songs: Song[], constants: V2SongMap): RatingReport {
+export function calculateV2Report(
+  scores: ImportedScore[],
+  songs: Song[],
+  constants: V2SongMap,
+  v1Constants: Map<number, V1Song>,
+): RatingReport {
   const database = flattenDatabase(constants)
   const byKey = new Map(database.map((song) => [`${song.id}-${song.difficulty}`, song]))
   const entries = filterDuplicates(filterIgnoredSongs(scores.flatMap((score) => {
     const song = byKey.get(`${score.id}-${score.difficulty}`)
     if (!song) return []
-    const entry = calculateEntry(song, score, songTitle(score.id, songs))
+    const timing = v1Constants.get(score.id)?.constants[song.difficultyKey]
+    const entry = calculateEntry(song, score, songTitle(score.id, songs), timing)
     return entry ? [entry] : []
   })))
-  return { version: 'v2', entries, summary: calculateSummary(entries, database) }
+  return {
+    version: 'v2',
+    entries,
+    summary: calculateSummary(entries, database),
+    drumroll: analyzeDrumroll(entries, WEIGHTS_A),
+  }
 }

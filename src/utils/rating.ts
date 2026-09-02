@@ -1,4 +1,5 @@
 import type { DifficultyKey, ImportedScore, Song } from '../types'
+import type { DrumrollAnalysis } from './drumroll'
 import { DUPLICATE_SONGS } from '../data/duplicateSongs'
 import { IGNORED_SONGS } from '../data/ignoredSongs'
 
@@ -23,6 +24,7 @@ export interface RatingEntry {
   good: number
   bad: number
   totalNotes: number
+  drumrollSpeed: number | null
   values: Partial<Record<RatingDimensionKey, number>> & { rating: number }
 }
 
@@ -37,6 +39,7 @@ export interface RatingReport {
   version: RatingVersion
   entries: RatingEntry[]
   summary: RatingSummaryItem[]
+  drumroll: DrumrollAnalysis
 }
 
 export const NORMALIZATION_FACTOR = 15.5

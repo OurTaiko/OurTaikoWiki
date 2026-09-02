@@ -131,7 +131,7 @@ export function RatingHistory({ githubToken, songs, algoVersion, v1, v2 }: Ratin
       revision,
       report: algoVersion === 'v1'
         ? calculateV1Report(revision.scores, songs, v1)
-        : calculateV2Report(revision.scores, songs, v2),
+        : calculateV2Report(revision.scores, songs, v2, v1),
     })),
   })) ?? [], [algoVersion, histories, songs, v1, v2])
 

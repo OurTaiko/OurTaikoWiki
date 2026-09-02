@@ -1,4 +1,5 @@
 import type { ImportedScore, Song, V1Difficulty, V1Song } from '../types'
+import { analyzeDrumroll, getDrumrollSpeed } from './drumroll'
 import {
   NORMALIZATION_FACTOR,
   calculateComprehensiveAccuracy,
@@ -83,6 +84,7 @@ export function calculateV1SongRating(data: V1Difficulty, score: ImportedScore, 
     good: score.ok,
     bad: score.bad,
     totalNotes: data.totalNotes,
+    drumrollSpeed: getDrumrollSpeed(score.drumroll - (data.balloonCount ?? 0), data.rollSeconds),
     values: {
       rating,
       power: Math.sqrt(rating * x),
@@ -125,5 +127,10 @@ export function calculateV1Report(scores: ImportedScore[], songs: Song[], consta
     const entry = calculateV1SongRating(data, score, songTitle(score.id, songs, song.title), key)
     return entry ? [entry] : []
   })))
-  return { version: 'v1', entries, summary: calculateSummary(entries) }
+  return {
+    version: 'v1',
+    entries,
+    summary: calculateSummary(entries),
+    drumroll: analyzeDrumroll(entries, TOP_WEIGHTS),
+  }
 }

@@ -297,10 +297,18 @@
   .single-rating-card__score strong { margin-top: .15rem; color: var(--model-accent); font: 800 clamp(2.7rem, 5vw, 4rem)/1 var(--mono); letter-spacing: -.08em; }
   .single-rating-card__score b { margin-top: .35rem; color: #fff; font: 800 1.35rem var(--mono); }
   .single-rating-card__score small { margin-top: .35rem; overflow: hidden; color: rgb(255 255 255 / 48%); font-size: .58rem; text-overflow: ellipsis; white-space: nowrap; }
-  .single-rating-card__dimensions { display: grid; grid-template-columns: repeat(3, 1fr); margin-top: 1rem; border-top: 1px solid var(--line); border-left: 1px solid var(--line); }
+  .single-rating-card__metrics { display: grid; grid-template-columns: minmax(0, 3fr) minmax(110px, 1fr); gap: 1rem; margin-top: 1rem; }
+  .single-rating-card__dimensions { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--line); border-left: 1px solid var(--line); }
   .single-rating-card__dimensions > div { display: flex; min-height: 72px; padding: .65rem; flex-direction: column; justify-content: center; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); }
   .single-rating-card__dimensions span { color: var(--ink-soft); font-size: .65rem; }
   .single-rating-card__dimensions strong { margin-top: .2rem; color: var(--ink); font: 800 1.12rem var(--mono); }
+  .single-rating-card__drumroll { display: flex; min-height: 144px; padding: .65rem 1rem; flex-direction: column; align-items: flex-start; justify-content: center; border: 1px solid var(--line); }
+  .single-rating-card__drumroll > div { display: flex; flex-direction: column; gap: .2rem; }
+  .single-rating-card__drumroll span { color: var(--ink-soft); font-size: .65rem; }
+  .single-rating-card__drumroll small { color: var(--muted); font-size: .65rem; }
+  .single-rating-card__drumroll strong { display: flex; margin-top: .2rem; align-items: baseline; gap: .25rem; color: var(--ink); font: 800 1.12rem var(--mono); }
+  .single-rating-card__drumroll strong small { color: var(--ink-soft); font: 600 .58rem var(--mono); white-space: nowrap; }
+  .single-rating-card__drumroll.is-excluded strong { color: var(--muted); text-decoration: line-through; }
   .single-rating-card > footer { margin-top: .85rem; color: var(--ink-soft); font-size: .62rem; line-height: 1.6; }
   .single-rating-card__empty { display: grid; min-height: 245px; padding: 2rem; place-items: center; align-content: center; text-align: center; }
   .single-rating-card__empty strong { font: 700 1.15rem var(--display); }
@@ -395,12 +403,19 @@
   .rating-total span { color: rgb(255 255 255 / 56%); font: 700 .7rem var(--mono); letter-spacing: .18em; }
   .rating-total strong { z-index: 1; margin: .4rem 0; color: var(--gold); font: 800 clamp(3rem, 5vw, 4.6rem)/1 var(--mono); letter-spacing: -.08em; }
   .rating-total small { color: rgb(255 255 255 / 45%); font: .58rem var(--mono); letter-spacing: .11em; }
+  .rating-scoreboard__metrics { display: flex; min-width: 0; flex-direction: column; gap: 1rem; }
   .rating-dimensions { display: grid; grid-template-columns: repeat(2, 1fr); border-top: 1px solid var(--line); border-left: 1px solid var(--line); }
   .rating-dimensions button { display: flex; min-height: 83px; padding: .8rem 1rem; align-items: center; justify-content: space-between; color: var(--ink); background: transparent; border: 0; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); transition: background 140ms, color 140ms; }
   .rating-dimensions button:hover, .rating-dimensions button.is-active { color: var(--accent); background: var(--accent-soft); }
   .rating-dimensions button span { color: var(--ink-soft); font-size: .72rem; }
   .rating-dimensions button span i { display: inline-grid; width: 15px; height: 15px; margin-left: .3rem; place-items: center; color: #fff; background: var(--secondary); border-radius: 50%; font: 700 .64rem var(--mono); }
   .rating-dimensions button strong { font: 800 1.45rem var(--mono); }
+  .rating-drumroll { display: flex; min-height: 76px; padding: 1rem 1.25rem; align-items: center; justify-content: space-between; background: var(--paper-soft); border: 1px solid var(--line); }
+  .rating-drumroll div { display: flex; flex-direction: column; gap: .28rem; }
+  .rating-drumroll span { color: var(--ink-soft); font-size: .72rem; }
+  .rating-drumroll small { color: var(--muted); font: .7rem var(--mono); }
+  .rating-drumroll strong { display: flex; align-items: baseline; gap: .3rem; color: var(--ink); font: 800 1.45rem var(--mono); white-space: nowrap; }
+  .rating-drumroll strong small { color: var(--ink-soft); font: 600 .65rem var(--mono); }
   .rating-overview > .radar-card { min-height: 100%; }
 
   .rating-dimension-nav { display: grid; grid-template-columns: repeat(7, 1fr); margin-top: 1.2rem; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-small); }
@@ -829,9 +844,12 @@
     .single-rating-card { padding: .85rem; }
     .single-rating-card__score { grid-template-columns: 1fr; }
     .single-rating-card__score > div + div { border-top: 1px solid rgb(255 255 255 / 14%); border-left: 0; }
+    .single-rating-card__metrics { grid-template-columns: 1fr; }
     .single-rating-card__dimensions { grid-template-columns: repeat(2, 1fr); }
+    .single-rating-card__drumroll { min-height: 64px; padding-inline: .65rem; flex-direction: row; align-items: center; justify-content: space-between; }
     .rating-dimensions { grid-template-columns: 1fr; }
     .rating-dimensions button { min-height: 64px; }
+    .rating-drumroll { min-height: 64px; }
     .rating-dimension-nav { grid-template-columns: repeat(2, 1fr); }
     .rating-dimension-nav button:nth-child(2n) { border-right: 0; }
     .rating-dimension-nav button:nth-child(n) { border-bottom: 1px solid var(--line); }

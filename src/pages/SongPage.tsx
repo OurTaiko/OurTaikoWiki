@@ -8,8 +8,9 @@ import { useWiki } from '../context/WikiContext'
 import { loadV1Constants, loadV2Constants } from '../data/constants'
 import { difficultyKeys, type DifficultyKey, type V1Difficulty, type V2Difficulty, type V2DifficultyKey } from '../types'
 import { ratingDimensionLabels, type RatingEntry, type RatingVersion } from '../utils/rating'
-import { calculateV1SongRating } from '../utils/rating-v1'
-import { calculateV2SongRating } from '../utils/rating-v2'
+import { getDrumrollSpeed, isDrumrollSpeedValid } from '../utils/drumroll'
+import { calculateV1Report, calculateV1SongRating } from '../utils/rating-v1'
+import { calculateV2Report, calculateV2SongRating } from '../utils/rating-v2'
 
 function firstDifficulty(levels: Record<DifficultyKey, number | string | null>): DifficultyKey {
   if (levels.oni !== null) return 'oni'
@@ -93,11 +94,13 @@ function EmptyConstant({ version }: { version: 'v1' | 'v2' }) {
 interface SingleRatingCardProps {
   version: RatingVersion
   entry: RatingEntry | null
+  drumrollSpeed: number | null
+  drumrollUpperBound: number
   hasScore: boolean
   hasConstants: boolean
 }
 
-function SingleRatingCard({ version, entry, hasScore, hasConstants }: SingleRatingCardProps) {
+function SingleRatingCard({ version, entry, drumrollSpeed, drumrollUpperBound, hasScore, hasConstants }: SingleRatingCardProps) {
   const isV1 = version === 'v1'
   const dimensions = ratingDimensionLabels[version].slice(1)
 
@@ -119,10 +122,19 @@ function SingleRatingCard({ version, entry, hasScore, hasConstants }: SingleRati
             <div><span>SINGLE RATING</span><strong>{entry.values.rating.toFixed(2)}</strong></div>
             <div><span>综合良率</span><b>{(entry.accuracy * 100).toFixed(2)}%</b><small>良 {entry.great} · 可 {entry.good} · 不可 {entry.bad}</small></div>
           </div>
-          <div className="single-rating-card__dimensions">
-            {dimensions.map(([key, label]) => (
-              <div key={key}><span>{label}</span><strong>{entry.values[key]?.toFixed(2) ?? '—'}</strong></div>
-            ))}
+          <div className="single-rating-card__metrics">
+            <div className="single-rating-card__dimensions">
+              {dimensions.map(([key, label]) => (
+                <div key={key}><span>{label}</span><strong>{entry.values[key]?.toFixed(2) ?? '—'}</strong></div>
+              ))}
+            </div>
+            <div
+              className={`single-rating-card__drumroll${drumrollSpeed !== null && !isDrumrollSpeedValid(drumrollSpeed, drumrollUpperBound) ? ' is-excluded' : ''}`}
+              title={`当前自适应上限：${drumrollUpperBound.toFixed(2)} 打/秒`}
+            >
+              <div><span>连打力</span><small>独立指标</small></div>
+              <strong>{drumrollSpeed?.toFixed(2) ?? '—'}{drumrollSpeed !== null && <small>打/秒</small>}</strong>
+            </div>
           </div>
         </>
       )}
@@ -170,6 +182,15 @@ export function SongPage() {
   const v2Rating = useMemo(() => score && v2Data
     ? calculateV2SongRating(v2Data, score, song?.title || `曲目 ${songId}`, difficulty)
     : null, [score, v2Data, song?.title, songId, difficulty])
+  const report = useMemo(() => {
+    if (!v1 || !v2) return undefined
+    return algoVersion === 'v1'
+      ? calculateV1Report(scores, songs, v1)
+      : calculateV2Report(scores, songs, v2, v1)
+  }, [algoVersion, scores, songs, v1, v2])
+  const drumrollSpeed = score
+    ? getDrumrollSpeed(score.drumroll - (v1Data?.balloonCount ?? 0), v1Data?.rollSeconds)
+    : null
 
   const isV1 = algoVersion === 'v1'
 
@@ -247,6 +268,8 @@ export function SongPage() {
           <SingleRatingCard
             version={algoVersion}
             entry={isV1 ? v1Rating : v2Rating}
+            drumrollSpeed={drumrollSpeed}
+            drumrollUpperBound={report?.drumroll.upperBound ?? 60}
             hasScore={Boolean(score)}
             hasConstants={isV1 ? Boolean(v1Data) : Boolean(v2Data)}
           />
