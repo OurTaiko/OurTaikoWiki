@@ -256,6 +256,7 @@
     "maxSpeed": "Max Speed",
     "maxAccuracy": "Max Accuracy",
     "maxRhythm": "Max Rhythm",
-    "maxComplex": "Max Complex"
+    "maxComplex": "Max Complex",
+    "maxRollSeconds": "Max Drumroll Duration"
   }
 }
