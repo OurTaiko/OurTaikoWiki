@@ -256,6 +256,7 @@
     "maxSpeed": "高速力上限",
     "maxAccuracy": "精度力上限",
     "maxRhythm": "节奏上限",
-    "maxComplex": "复合上限"
+    "maxComplex": "复合上限",
+    "maxRollSeconds": "连打时长上限"
   }
 }

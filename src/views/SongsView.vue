@@ -21,11 +21,12 @@ interface SongRow {
   userScore?: UserScore
   stats?: SongStats
   maxRatings?: RatingDimensions
+  rollSeconds?: number
   drumrollSpeed?: number
 }
 
 type SortKey = 'title' | 'constant' | 'score' | 'rating' | 'great' | 'good' | 'bad' | 'drumrollSpeed' | 'combo' | 'updatedAt'
-  | 'maxRating' | 'maxDaigouryoku' | 'maxStamina' | 'maxSpeed' | 'maxAccuracy' | 'maxRhythm' | 'maxComplex'
+  | 'maxRating' | 'maxDaigouryoku' | 'maxStamina' | 'maxSpeed' | 'maxAccuracy' | 'maxRhythm' | 'maxComplex' | 'maxRollSeconds'
 
 const calculateDrumrollSpeed = (score: UserScore | undefined, rollSeconds: number | undefined, balloonCount: number | undefined) => {
   if (!score) return undefined
@@ -285,6 +286,7 @@ onMounted(async () => {
         userScore: score,
         stats: stats,
         maxRatings: calcMaxRatings(entry.data, store.ratingAlgorithm.value),
+        rollSeconds: entry.data.rollSeconds,
         drumrollSpeed: calculateDrumrollSpeed(score, entry.data.rollSeconds, entry.data.balloonCount)
       })
     }
@@ -483,6 +485,10 @@ const filteredSongs = computed(() => {
         valA = a.maxRatings?.complex ?? -1
         valB = b.maxRatings?.complex ?? -1
         break
+      case 'maxRollSeconds':
+        valA = a.rollSeconds ?? -1
+        valB = b.rollSeconds ?? -1
+        break
     }
     
     if (valA === valB) return 0
@@ -643,6 +649,9 @@ watch([searchTerm, minConstant, maxConstant, statusFilters, onlyCnSongs, sortKey
             <th v-if="showMaxRatings" @click="toggleSort('maxComplex')" class="bg-black/5 hover:bg-black/10 p-4 font-bold text-[#1D1D1F] text-left whitespace-nowrap transition-colors cursor-pointer select-none">
               {{ t('songs.maxComplex') }} <span v-if="sortKey === 'maxComplex'" class="ml-1">{{ sortOrder === 'asc' ? '↑' : '↓' }}</span>
             </th>
+            <th v-if="showMaxRatings" @click="toggleSort('maxRollSeconds')" class="bg-black/5 hover:bg-black/10 p-4 font-bold text-[#1D1D1F] text-left whitespace-nowrap transition-colors cursor-pointer select-none">
+              {{ t('songs.maxRollSeconds') }} <span v-if="sortKey === 'maxRollSeconds'" class="ml-1">{{ sortOrder === 'asc' ? '↑' : '↓' }}</span>
+            </th>
             <th @click="toggleSort('score')" class="bg-black/5 hover:bg-black/10 p-4 font-bold text-[#1D1D1F] text-left whitespace-nowrap transition-colors cursor-pointer select-none">
               {{ t('rating.score') }} <span v-if="sortKey === 'score'" class="ml-1">{{ sortOrder === 'asc' ? '↑' : '↓' }}</span>
             </th>
@@ -691,6 +700,7 @@ watch([searchTerm, minConstant, maxConstant, statusFilters, onlyCnSongs, sortKey
             <td v-if="showMaxRatings" class="p-4 border-black/5 border-b font-mono text-left">{{ song.maxRatings?.accuracy_power.toFixed(2) ?? '-' }}</td>
             <td v-if="showMaxRatings" class="p-4 border-black/5 border-b font-mono text-left">{{ song.maxRatings?.rhythm.toFixed(2) ?? '-' }}</td>
             <td v-if="showMaxRatings" class="p-4 border-black/5 border-b font-mono text-left">{{ song.maxRatings?.complex.toFixed(2) ?? '-' }}</td>
+            <td v-if="showMaxRatings" class="p-4 border-black/5 border-b font-mono text-left">{{ song.rollSeconds !== undefined ? `${song.rollSeconds.toFixed(2)} s` : '-' }}</td>
             <td class="p-4 border-black/5 border-b font-mono text-left">{{ song.userScore?.score ?? '-' }}</td>
             <td 
               :class="{ 'text-[#007AFF] font-bold': song.stats }" 
