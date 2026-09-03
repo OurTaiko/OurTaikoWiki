@@ -231,10 +231,10 @@ async function buildDiffFromScoreHistory(
   if (!snapshots.length) return { version: 2, createdAt: fallbackDate, entries: [] }
   const distinct = snapshots.filter((snapshot, index) => index === 0
     || canonicalJson(snapshot.scores) !== canonicalJson(snapshots[index - 1].scores))
-  const entries = distinct.slice(1).map((snapshot, index) => ({
-    committedAt: snapshot.committedAt,
-    changes: compareScores(distinct[index].scores, snapshot.scores),
-  }))
+  const entries = distinct.slice(1).flatMap((snapshot, index) => {
+    const changes = compareScores(distinct[index].scores, snapshot.scores)
+    return changes.length > 0 ? [{ committedAt: snapshot.committedAt, changes }] : []
+  })
   return { version: 2, createdAt: distinct[0].committedAt, entries }
 }
 
@@ -315,19 +315,20 @@ export async function syncScoresToGist(
       throw new Error('云端当前成绩文件格式无效')
     }
   }
+  const scoresChanged = canonicalJson(previousScores) !== canonicalJson(nextScores)
   const changes = compareScores(previousScores, nextScores)
   const needsHistoryMigration = previousContent !== null && !isCurrentDiffDocument(historyContent)
   const history = needsHistoryMigration
     ? await buildDiffFromScoreHistory(gistId, filename, githubToken, now)
     : parseDiffDocument(historyContent, now)
-  if (previousContent !== null && historyContent !== null && changes.length === 0 && !needsHistoryMigration) {
+  if (previousContent !== null && historyContent !== null && !scoresChanged && !needsHistoryMigration) {
     localStorage.setItem(GITHUB_TOKEN_STORAGE_KEY, githubToken)
     localStorage.setItem(GIST_ID_STORAGE_KEY, gistId)
     return { gistId, filename, changed: false, created: false }
   }
   if (previousContent !== null && changes.length > 0) history.entries.push({ committedAt: now, changes })
 
-  if (changes.length === 0 && needsHistoryMigration) {
+  if (!scoresChanged && needsHistoryMigration) {
     await githubRequest<GistResponse>(`https://api.github.com/gists/${encodeURIComponent(gistId)}`, githubToken, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
@@ -338,13 +339,14 @@ export async function syncScoresToGist(
     return { gistId, filename, changed: false, created: false }
   }
 
+  const files: Record<string, { content: string }> = { [filename]: { content } }
+  if (changes.length > 0 || needsHistoryMigration) {
+    files[historyFilename] = { content: `${JSON.stringify(history, null, 2)}\n` }
+  }
   await githubRequest<GistResponse>(`https://api.github.com/gists/${encodeURIComponent(gistId)}`, githubToken, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ files: {
-      [filename]: { content },
-      [historyFilename]: { content: `${JSON.stringify(history, null, 2)}\n` },
-    } }),
+    body: JSON.stringify({ files }),
   })
   localStorage.setItem(GITHUB_TOKEN_STORAGE_KEY, githubToken)
   localStorage.setItem(GIST_ID_STORAGE_KEY, gistId)
@@ -358,7 +360,7 @@ function compareScores(previous: ImportedScore[], current: ImportedScore[]): Gis
   return [...keys].flatMap((key) => {
     const before = previousMap.get(key) ?? null
     const after = currentMap.get(key) ?? null
-    if (before && after && canonicalJson(before) === canonicalJson(after)) return []
+    if (!before || !after || before.highScore === after.highScore) return []
     const score = after ?? before
     return score ? [{ id: score.id, difficulty: score.difficulty, previous: before, current: after }] : []
   })
