@@ -4,8 +4,9 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "vite --host --port 3000",
-    "build": "tsc --noEmit && vite build",
+    "icons": "node scripts/generate-icons.mjs",
+    "dev": "node scripts/generate-icons.mjs && vite --host --port 3000",
+    "build": "node scripts/generate-icons.mjs && tsc --noEmit && vite build",
     "preview": "vite preview --host --port 3000",
     "type-check": "tsc --noEmit"
   },
@@ -19,6 +20,7 @@
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
     "@vitejs/plugin-react": "^4.3.4",
+    "sharp": "0.35.4",
     "typescript": "~5.9.3",
     "vite": "^6.0.7"
   }

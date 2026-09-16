@@ -82,8 +82,7 @@
   .site-header { position: sticky; top: 0; z-index: 50; border-bottom: 1px solid rgb(112 91 68 / 22%); background: rgb(243 239 229 / 86%); backdrop-filter: blur(18px) saturate(1.2); }
   .site-header__inner { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 2rem; width: min(1320px, calc(100% - 40px)); min-height: 74px; margin-inline: auto; }
   .brand { display: flex; align-items: center; gap: .72rem; min-width: max-content; }
-  .brand__seal { display: grid; width: 42px; height: 42px; place-items: center; color: #fff; background: var(--accent); border: 1px solid var(--accent-deep); border-radius: 50%; box-shadow: inset 0 0 0 3px rgb(255 255 255 / 24%); transform: rotate(-6deg); }
-  .brand__seal svg { width: 23px; }
+  .brand__seal { display: block; width: 42px; height: 42px; flex-shrink: 0; object-fit: contain; border-radius: 10px; }
   .brand > span:last-child { display: grid; }
   .brand b { font: 800 .86rem/1 var(--mono); letter-spacing: .12em; }
   .brand em { color: var(--accent); font: 700 1rem/1.25 var(--display); letter-spacing: .34em; }
@@ -687,7 +686,6 @@
     box-shadow: inset 0 1px 2px rgb(255 255 255 / 18%), var(--shadow-small);
   }
   body[data-theme="ffxiv"] .site-header { background: rgb(31 31 30 / 93%); border-color: #4d473c; }
-  body[data-theme="ffxiv"] .brand__seal { color: #35322e; background: var(--accent); border-color: #f4e5b2; }
   body[data-theme="ffxiv"] .brand em { color: var(--accent); }
   body[data-theme="ffxiv"] .compact-select,
   body[data-theme="ffxiv"] .search-box,

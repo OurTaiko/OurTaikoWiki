@@ -45,3 +45,11 @@ https://wiki.ourtaiko.org/migrate#data=<encoded>
 - `taikoScoreData` → `our-taiko-wiki:scores`（转换为新版 `ImportedScore` 格式，按 id+difficulty 合并，不覆盖已有成绩）
 
 旧端跳转脚本位于旧仓库 `main` / `v2` 分支的 `index.html`；新端解码逻辑位于 `src/utils/legacyMigration.ts`，接收页面位于 `src/pages/MigratePage.tsx`。
+
+## 网站图标
+
+原始 logo 保存在 `assets/branding/icon.png`，需要提交到 Git。`pnpm dev` 和
+`pnpm build` 会先用锁定版本的 Sharp 生成 favicon、多尺寸 PNG 和 Apple touch
+icon；也可单独运行 `pnpm icons`。生成文件已加入 `.gitignore`，
+`public/site.webmanifest` 仍作为配置提交。CI 和部署服务器只需正常执行
+`pnpm install --frozen-lockfile`、`pnpm build`，无需手动准备图标。

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { BarChart3, BookOpenText, Drum, Import, Info, Menu, Settings, X } from 'lucide-react'
+import { BarChart3, BookOpenText, Import, Info, Menu, Settings, X } from 'lucide-react'
 import { Link, NavLink } from 'react-router-dom'
 import { useWiki } from '../context/WikiContext'
 import { ImportDialog } from './ImportDialog'
@@ -14,7 +14,7 @@ export function Header() {
       <header className="site-header">
         <div className="site-header__inner">
           <Link to="/songs" className="brand" aria-label="Our Taiko Wiki 首页">
-            <span className="brand__seal"><Drum /></span>
+            <img className="brand__seal" src={`${import.meta.env.BASE_URL}icons/icon-192.png`} alt="" width={42} height={42} />
             <span><b>OUR TAIKO</b><em>曲目鉴</em></span>
           </Link>
 
